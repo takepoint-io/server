@@ -1,0 +1,12 @@
+{
+    "worldValues": {
+        "radius": 4000,
+        "points": [
+            
+        ]
+    },
+    "serverValues": {
+        "tickrate": 25,
+        "tickLength": 40
+    }
+}

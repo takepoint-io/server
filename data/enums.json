@@ -1,0 +1,31 @@
+{
+    "serverPackets": {
+        "joinGame": "a",
+        "playerUpdate": "b",
+        "playerMiscData": "c",
+        "playerJoin": "d",
+        "playerExit": "e",
+        "upgrades": "f",
+        "bulletJoin": "g",
+        "bulletMove": "h",
+        "bullletExit": "i",
+        "objectJoin": "j",
+        "objectUpdate": "k",
+        "objectExit": "l",
+        "gasGrenadeJoin": "n",
+        "gasGrenadeExit": "o",
+        "alert": "r",
+        "viewbox": "v",
+        "leaderboard": "w",
+        "teamControl": "mc",
+        "pointUpdate": "pu",
+        "minimap": "mp",
+        "kick": "t",
+        "respawn": "re",
+        "stats": "sta",
+        "ping": "."
+    },
+    "clientPackets": {
+        ".": "ping"
+    }
+}
