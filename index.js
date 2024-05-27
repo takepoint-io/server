@@ -1,19 +1,20 @@
 require('dotenv').config();
-const WebSocket = require('ws');
 const axios = require('axios');
+const GameServer = require('./classes/gameServer');
 const World = require('./classes/world');
 const enums = require('./data/enums.json');
-const { worldValues, serverValues } = require("./data/values.json");
-const serverConfig = require("./config.json");
+const { worldValues, serverValues } = require('./data/values.json');
+const serverConfig = require('./config.json');
+const APIUrl = serverConfig.dev ? 'http://127.0.0.1:8080' : 'https://takepoint.io';
 
-const APIUrl = serverConfig.dev ? "http://127.0.0.1:8080" : "https://takepoint.io";
+const gameServer = new GameServer(8000);
+const world = new World(worldValues.radius, worldValues.points);
 
 const serverStats = {
     lastWarning: 0,
     lastAPIUpdate: 0,
     id: Math.floor(Math.random() * 9000) + 1000
 };
-const world = new World(worldValues.radius, worldValues.points);
 
 function nextTick() {
 
