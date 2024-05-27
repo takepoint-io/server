@@ -7,8 +7,10 @@ const { worldValues, serverValues } = require('./data/values.json');
 const serverConfig = require('./config.json');
 const APIUrl = serverConfig.dev ? 'http://127.0.0.1:8080' : 'https://takepoint.io';
 
-const gameServer = new GameServer(8000);
+const gameServer = new GameServer(8000, serverConfig.capacity);
 const world = new World(worldValues.radius, worldValues.points);
+
+
 
 const serverStats = {
     lastWarning: 0,
@@ -46,8 +48,7 @@ const gameLoop = function() {
     let now = Date.now();
     if (lastTick + serverValues.tickLength <= now) {
         const delta = now - lastTick;
-        console.log(delta)
-        if (delta >= serverValues.tickLength * 1.1 && now - serverStats.lastWarning > 60 * 1000) {
+        if (delta >= serverValues.tickLength * 1.1 && now - serverStats.lastWarning > 15 * 1000) {
             console.log(`Ticks are taking more than 10% longer than expected! Last tick took ${delta}ms`);
             serverValues.lastWarning = Date.now();
         }
