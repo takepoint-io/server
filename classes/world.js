@@ -1,5 +1,5 @@
 class World {
-    constructor (radius, points) {
+    constructor(radius, points) {
         this.radius = radius;
         this.points = points.map((coords, i) => this.coordsToPoint(coords, i));
         this.players = [];
