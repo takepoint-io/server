@@ -16,6 +16,10 @@ gameServer.on("playerJoin", player => {
     player.sendUpdate(ping);
 });
 
+gameServer.on("playerMessage", (player, msg) => {
+    let data = Packet.decode(msg);
+});
+
 const serverStats = {
     lastWarning: 0,
     lastAPIUpdate: 0,

@@ -5,7 +5,10 @@ const Player = require('./player');
 const Packet = require('./packet');
 
 class GameServer extends EventEmitter {
-    #pingSocketTTL = 12000;
+    #timeouts = {
+        pingSocketTTL: 12 * 1000,
+        playerIdle: 120 * 1000
+    }
     constructor(port, capacity) {
         super();
         this.players = new Map();
@@ -40,6 +43,8 @@ class GameServer extends EventEmitter {
         });
 
         this.httpServer.listen(port);
+
+        setInterval(() => this.globalSweep(), 1000);
     }
 
     playerConnected(client) {
@@ -47,6 +52,11 @@ class GameServer extends EventEmitter {
         let player = new Player(playerID, client);
         this.players.set(playerID, player); 
         this.emit("playerJoin", player);
+        client.lastActive = Date.now();
+
+        client.on("message", msg => {
+            this.emit("playerMessage", player, msg);
+        });
 
         client.on("close", () => {
             this.players.delete(playerID);
@@ -54,11 +64,17 @@ class GameServer extends EventEmitter {
     }
 
     pingConnected(client) {
-        setTimeout(() => { client.close() }, this.#pingSocketTTL);
+        setTimeout(() => { client.close() }, this.#timeouts.pingSocketTTL);
         let ping = new Packet({ type: "ping" }).enc();
         client.send(ping);
         client.on("message", msg => {
             client.send(ping);
+        });
+    }
+
+    globalSweep() {
+        this.players.forEach(player => {
+            //TODO: kick inactive players
         });
     }
 

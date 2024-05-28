@@ -3,6 +3,10 @@ class Packet {
         this.data = data;
     }
 
+    pointInfo(pointArray) {
+        
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return "."
@@ -18,6 +22,12 @@ class Packet {
 
     static toBytes(packet) {
         return new TextEncoder().encode(packet);
+    }
+
+    static decode(packet) {
+        let utf8 = new TextDecoder().decode(packet);
+        let parts = utf8.split(",");
+        console.log()
     }
 }
 
