@@ -9,7 +9,7 @@ const serverConfig = require('./config.json');
 const APIUrl = serverConfig.dev ? 'http://127.0.0.1:8080' : 'https://takepoint.io';
 
 const gameServer = new GameServer(8000, serverConfig.capacity);
-const world = new World(worldValues.radius, worldValues.points);
+const world = new World(worldValues.radius, worldValues.points, gameServer.players);
 
 gameServer.on("playerJoin", player => {
     let ping = new Packet({ type: "ping" }).enc();
@@ -17,8 +17,24 @@ gameServer.on("playerJoin", player => {
 });
 
 gameServer.on("playerMessage", (player, msg) => {
-    let data = Packet.decode(msg);
+    let data;
+    try {
+        data = Packet.decode(msg);
+    } catch (e) { return };
+    if (data.type == "ping") {
+        if (Date.now() - player.socket.lastPing >= 5) {
+            let ping = new Packet({ type: "ping" }).enc();
+            player.sendUpdate(ping);
+            player.socket.lastPing = Date.now();
+        }
+        return;
+    }
+    world.handleMessage(player, data);
 });
+
+gameServer.on("playerLeave", player => {
+    world.handlePlayerLeave(player);
+})
 
 const serverStats = {
     lastWarning: 0,
@@ -27,7 +43,7 @@ const serverStats = {
 };
 
 function nextTick() {
-
+    world.evalTick();
 
     if (Date.now() - serverStats.lastAPIUpdate > serverConfig.APIUpdateFreq) {
         axios.post(`${APIUrl}/register_instance`, {
