@@ -26,6 +26,15 @@
         "ping": "."
     },
     "clientPackets": {
-        ".": "ping"
+        "ping": ".",
+        "chat": "c",
+        "reset": "f",
+        "userAgent": "h",
+        "keypress": "k",
+        "mouse": "m",
+        "debug": "r",
+        "spawn": "s",
+        "gun": "w",
+        "adBlock": "x"
     }
 }
