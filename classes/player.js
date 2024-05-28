@@ -28,6 +28,7 @@ class Player {
             space: false,
             mouse: false
         };
+        this.lastInput = Date.now();
     }
 
     sendUpdate(packet) {

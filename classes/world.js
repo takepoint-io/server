@@ -8,7 +8,10 @@ class World {
     }
 
     evalTick() {
-        
+        for (let [playerID, player] of this.players) {
+            
+            player.socket.packetsThisTick = 0;
+        }
     }
 
     handleMessage(player, data) {
@@ -16,7 +19,7 @@ class World {
             case "keypress":
                 this.handleKeyInput(player, data.key, data.pressed);
             case "mouse":
-                this.handleMouseInput(player, data.x, data.y, angle);
+                this.handleMouseInput(player, data.x, data.y, data.angle);
             case "spawn":
                 this.handleSpawn(player);
         }
@@ -24,6 +27,7 @@ class World {
 
     handleKeyInput(player, key, pressed) {
         player.inputs[this.inputTypes[key]] = pressed;
+        player.lastInput = Date.now();
     }
 
     handleMouseInput(player, x, y, angle) {
@@ -35,7 +39,7 @@ class World {
     }
 
     handlePlayerLeave(player) {
-        
+
     }
 
     coordsToPoint(point, index) {

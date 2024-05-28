@@ -5,9 +5,10 @@ const Player = require('./player');
 const Packet = require('./packet');
 
 class GameServer extends EventEmitter {
-    #timeouts = {
+    #limits = {
         pingSocketTTL: 12 * 1000,
-        playerIdle: 120 * 1000
+        playerIdle: 120 * 1000,
+        packetsPerTick: 20
     }
     constructor(port, capacity) {
         super();
@@ -53,18 +54,24 @@ class GameServer extends EventEmitter {
         this.players.set(playerID, player); 
         this.emit("playerJoin", player);
         client.lastActive = Date.now();
+        client.lastPing = Date.now();
+        client.packetsThisTick = 0;
 
         client.on("message", msg => {
             this.emit("playerMessage", player, msg);
+            client.packetsThisTick++;
+            if (client.packetsThisTick > this.#limits.packetsPerTick) {
+                client.close();
+            }
         });
 
         client.on("close", () => {
-            this.players.delete(playerID);
+            this.emit("playerLeave", player);
         });
     }
 
     pingConnected(client) {
-        setTimeout(() => { client.close() }, this.#timeouts.pingSocketTTL);
+        setTimeout(() => { client.close() }, this.#limits.pingSocketTTL);
         let ping = new Packet({ type: "ping" }).enc();
         client.send(ping);
         client.on("message", msg => {
@@ -75,6 +82,9 @@ class GameServer extends EventEmitter {
     globalSweep() {
         this.players.forEach(player => {
             //TODO: kick inactive players
+            if (Date.now() - player.lastInput > this.#limits.playerIdle) {
+                player.socket.close();
+            }
         });
     }
 
