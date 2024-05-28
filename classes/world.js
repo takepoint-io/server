@@ -1,28 +1,83 @@
+const Packet = require('./packet');
+const Team = require('./team');
+const { worldValues } = require('../data/values.json');
+
 class World {
     inputTypes = ["left", "right", "up", "down", "reload", "space", "mouse"];
-    constructor(radius, points, players) {
-        this.radius = radius;
-        this.points = points.map((coords, i) => this.coordsToPoint(coords, i));
+    constructor(players) {
+        this.radius = worldValues.radius
+        this.points = worldValues.points.map((coords, i) => this.coordsToPoint(coords, i));
+        this.teams = [
+            new Team("red", 0), new Team("green", 1), new Team("blue", 2)
+        ];
         this.players = players;
         this.tickCount = 0;
     }
 
     evalTick() {
-        for (let [playerID, player] of this.players) {
-            
+        this.preTick();
+
+        this.sendUpdates();
+    }
+
+    preTick() {
+        for (let [_playerID, player] of this.players) {
+            player.packet = new Packet();
             player.socket.packetsThisTick = 0;
         }
     }
 
+    sendUpdates() {
+        for (let [_playerID, player] of this.players) {
+            this.buildPacketFor(player);
+        }
+    }
+
+    buildPacketFor(player) {
+        for (let event of player.registeredEvents) {
+            if (event == "spawned") {
+                [player.x, player.y] = this.getSpawnPoint(player.teamCode);
+                player.resetInputs();
+            }
+            if (event == "disconnected") {
+                this.players.delete(player.id);
+                break;
+            }
+        }
+        player.registeredEvents = [];
+    }
+
+    getSpawnPoint() {
+        
+    }
+
+    getTeam() {
+        let sortedTeams = this.teams.sort((a, b) => a.players.size - b.players.size);
+        let candidates = sortedTeams.filter(team => team.players.size == sortedTeams[0].players.size);
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
     handleMessage(player, data) {
         switch (data.type) {
+            case "reset":
+                this.resetInputs(player);
+                break;
             case "keypress":
                 this.handleKeyInput(player, data.key, data.pressed);
+                break;
             case "mouse":
                 this.handleMouseInput(player, data.x, data.y, data.angle);
+                break;
             case "spawn":
                 this.handleSpawn(player);
+                break;
+            default:
+                break;
         }
+    }
+
+    resetInputs(player) {
+        player.resetInputs();
     }
 
     handleKeyInput(player, key, pressed) {
@@ -35,11 +90,21 @@ class World {
     }
 
     handleSpawn(player) {
-        
+        if (!player.spawned) {
+            player.registeredEvents.push("spawned");
+            player.spawned = true;
+        }
+    }
+
+    handlePlayerJoin(player) {
+        player.team = this.getTeam();
+        player.teamCode = player.team.id;
+        player.team.addPlayer(player);
     }
 
     handlePlayerLeave(player) {
-
+        player.team.removePlayer(player);
+        player.registeredEvents.push("disconnected");
     }
 
     coordsToPoint(point, index) {
