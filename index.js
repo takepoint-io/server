@@ -3,17 +3,17 @@ const axios = require('axios');
 const GameServer = require('./classes/gameServer');
 const World = require('./classes/world');
 const Packet = require('./classes/packet');
-const enums = require('./data/enums.json');
-const { worldValues, serverValues } = require('./data/values.json');
+const { serverValues } = require('./data/values.json');
 const serverConfig = require('./config.json');
 const APIUrl = serverConfig.dev ? 'http://127.0.0.1:8080' : 'https://takepoint.io';
 
 const gameServer = new GameServer(8000, serverConfig.capacity);
-const world = new World(worldValues.radius, worldValues.points, gameServer.players);
+const world = new World(gameServer.players);
 
 gameServer.on("playerJoin", player => {
     let ping = new Packet({ type: "ping" }).enc();
     player.sendUpdate(ping);
+    world.handlePlayerJoin(player);
 });
 
 gameServer.on("playerMessage", (player, msg) => {
