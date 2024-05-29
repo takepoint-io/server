@@ -24,6 +24,20 @@ class World {
         for (let [_playerID, player] of this.players) {
             player.packet = new Packet();
             player.socket.packetsThisTick = 0;
+            for (let event of player.registeredEvents) {
+                if (event == "spawned") {
+                    [player.x, player.y] = this.getSpawnPoint(player.teamCode);
+                    player.resetInputs();
+                }
+                if (event == "connected") {
+    
+                }
+                if (event == "disconnected") {
+                    this.players.delete(player.id);
+                    break;
+                }
+            }
+            player.registeredEvents = [];
         }
     }
 
@@ -34,21 +48,15 @@ class World {
     }
 
     buildPacketFor(player) {
-        for (let event of player.registeredEvents) {
-            if (event == "spawned") {
-                [player.x, player.y] = this.getSpawnPoint(player.teamCode);
-                player.resetInputs();
-            }
-            if (event == "disconnected") {
-                this.players.delete(player.id);
-                break;
-            }
-        }
-        player.registeredEvents = [];
+        
     }
 
-    getSpawnPoint() {
-        
+    getSpawnPoint(teamCode) {
+        //choose point on edge if the team controls no points
+        let angle = Math.random() * Math.PI * 2;
+        let x = Math.cos(angle) * this.radius;
+        let y = Math.sin(angle) * this.radius;
+        return [x, y];
     }
 
     getTeam() {
@@ -100,6 +108,7 @@ class World {
         player.team = this.getTeam();
         player.teamCode = player.team.id;
         player.team.addPlayer(player);
+        player.registeredEvents.push("connected");
     }
 
     handlePlayerLeave(player) {
