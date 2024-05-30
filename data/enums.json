@@ -18,6 +18,7 @@
         "viewbox": "v",
         "leaderboard": "w",
         "teamControl": "mc",
+        "pointInfo": "pi",
         "pointUpdate": "pu",
         "minimap": "mp",
         "kick": "t",

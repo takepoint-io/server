@@ -1,19 +1,31 @@
 const { serverPackets, clientPackets } = require('../data/enums.json');
 
 class Packet {
-    constructor(data = {}) {
+    constructor(data = { type: "state", packetList: [] }) {
         this.data = data;
     }
 
     pointInfo(pointArray) {
-        
+        for (let point of pointArray) {
+            let packet = [
+                serverPackets.pointInfo,
+                point.owner,
+                point.x,
+                point.y,
+                point.radius,
+                point.percentage,
+                1,
+                1
+            ].join(",");
+            this.data.packetList.push(packet);
+        }
     }
 
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
         if (packet.type == "state") {
-            return "";
+            return packet.packetList.join("|") + "\x00";
         }
         throw new Error("Packet type not recognized! Must be either ping or state");
     }
