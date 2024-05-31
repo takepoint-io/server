@@ -1,12 +1,13 @@
 const Packet = require('./packet');
+const Point = require('./point');
 const Team = require('./team');
 const { worldValues } = require('../data/values.json');
 
 class World {
     inputTypes = ["left", "right", "up", "down", "reload", "space", "mouse"];
     constructor(players) {
-        this.radius = worldValues.radius
-        this.points = worldValues.points.map((coords, i) => this.coordsToPoint(coords, i));
+        this.radius = worldValues.radius;
+        this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
         this.teams = [
             new Team("red", 0), new Team("green", 1), new Team("blue", 2)
         ];
@@ -26,8 +27,7 @@ class World {
             player.socket.packetsThisTick = 0;
             for (let event of player.registeredEvents) {
                 if (event == "spawned") {
-                    [player.x, player.y] = this.getSpawnPoint(player.teamCode);
-                    player.resetInputs();
+                    player.respawn(this);
                 }
                 if (event == "connected") {
                     player.packet.pointInfo(this.points);
@@ -45,7 +45,7 @@ class World {
         for (let [_playerID, player] of this.players) {
             this.buildPacketFor(player);
             if (player.packet.data.packetList.length == 0) continue;
-            //player.sendUpdate(player.packet.enc());
+            player.sendUpdate(player.packet.enc());
         }
     }
 
@@ -56,8 +56,8 @@ class World {
     getSpawnPoint(teamCode) {
         //choose point on edge if the team controls no points
         let angle = Math.random() * Math.PI * 2;
-        let x = Math.cos(angle) * this.radius;
-        let y = Math.sin(angle) * this.radius;
+        let x = Math.abs(Math.cos(angle) * (this.radius - 100));
+        let y = Math.abs(Math.sin(angle) * (this.radius - 100));
         return [x, y];
     }
 
@@ -116,17 +116,6 @@ class World {
     handlePlayerLeave(player) {
         player.team.removePlayer(player);
         player.registeredEvents.push("disconnected");
-    }
-
-    coordsToPoint(point, index) {
-        return { 
-            x: point[0],
-            y: point[1],
-            owner: 3,
-            percentage: 0,
-            radius: index ? worldValues.pointRadius : 500,
-            id: index
-        }
     }
 }
 

@@ -9,11 +9,12 @@ class Packet {
         for (let point of pointArray) {
             let packet = [
                 serverPackets.pointInfo,
+                point.id,
                 point.owner,
                 point.x,
                 point.y,
                 point.radius,
-                point.percentage,
+                point.percentCaptured,
                 1,
                 1
             ].join(",");
@@ -21,11 +22,21 @@ class Packet {
         }
     }
 
+    spawn(player) {
+        let packet = [
+            serverPackets.joinGame,
+            player.id,
+            player.teamCode,
+            player.gun,
+            player.radius
+        ];
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
         if (packet.type == "state") {
-            return packet.packetList.join("|") + "\x00";
+            return packet.packetList.join("|");
         }
         throw new Error("Packet type not recognized! Must be either ping or state");
     }
@@ -35,7 +46,7 @@ class Packet {
     }
 
     static toBytes(packet) {
-        return new TextEncoder().encode(packet);
+        return Buffer.from(packet);
     }
 
     static decode(packet) {
