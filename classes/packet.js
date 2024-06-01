@@ -22,16 +22,55 @@ class Packet {
         }
     }
 
+    viewbox(player) {
+        let packet = [
+            serverPackets.viewbox,
+            player.id,
+            player.viewbox.x,
+            player.viewbox.y
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     spawn(player) {
         let packet = [
             serverPackets.joinGame,
             player.id,
             player.teamCode,
-            player.gun,
-            player.radius
-        ];
+            player.weapon.id,
+            player.x,
+            player.y,
+            player.radius,
+            player.angle,
+            player.health,
+            player.maxHealth,
+            player.score,
+            player.level,
+            player.weapon.ammo,
+            player.weapon.maxAmmo,
+            0,
+            player.viewbox.x,
+            player.viewbox.y,
+            "test1",
+            player.spawnProt,
+            player.shield,
+            player.maxShield
+        ].join(",");
+        this.data.packetList.push(packet);
     }
 
+    playerUpdate(player) {
+        let packet = [
+            serverPackets.playerUpdate,
+            player.id,
+            player.x,
+            player.y,
+            Math.round(player.spdX),
+            Math.round(player.spdY),
+            player.angle
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
