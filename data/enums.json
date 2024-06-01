@@ -37,5 +37,11 @@
         "spawn": "s",
         "gun": "w",
         "adBlock": "x"
+    },
+    "weapons": {
+        "pistol": 0,
+        "assault": 1,
+        "sniper": 2,
+        "shotgun": 3
     }
 }
