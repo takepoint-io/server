@@ -27,6 +27,11 @@
             "bigPointRadius": 250,
             "ticksToCap": 300
         },
+        "movement": {
+            "baseResistiveForce": 0.2,
+            "dragCoefficient": 0.4,
+            "acceleration": 0.85
+        },
         "scoreAwards": {
             "pointNeutrailzed": 30,
             "pointTaken": 450
