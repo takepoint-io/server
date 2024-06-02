@@ -7,6 +7,7 @@ class Player {
         this.type = 0; //players are type 0. objects will be type 1, and bullets will be type 2.
         this.socket = socket;
         
+        this.loadingScreenDir = 0;
         this.spawnTimeout = 0;
         this.spawned = false;
         this.spawnProt = 0;
@@ -41,6 +42,7 @@ class Player {
         this.teamCode = 0;
         this.team = null;
         this.registeredEvents = [];
+        this.updatedFields = new Map();
 
         this.username = "";
         this.guestName = "";
@@ -67,6 +69,10 @@ class Player {
         return this.upgrades.speed + (this.weapon.name == "pistol" ? 13: 10);
     }
 
+    get numInputs() {
+        return this.inputs.left + this.inputs.right + this.inputs.up + this.inputs.down;
+    }
+
     get inputDirX() {
         return !this.inputs.left && this.inputs.right ? 1 : this.inputs.left && !this.inputs.right ? -1 : 2;
     }
@@ -85,24 +91,18 @@ class Player {
         }
     }
 
-    onConnect(world) {
-        this.packet.pointInfo(world.points);
-        this.packet.viewbox(this);
-    }
-
     respawn(world) {
         this.resetInputs();
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);
         this.spdX = 0;
         this.spdY = 0;
-        this.spawnProt = 0;
         this.health = this.maxHealth;
         this.shield = this.maxShield;
         this.score = Math.floor(this.score / 4);
         this.kills = 0;
         this.weapon = new Weapon("pistol", this);
-        this.packet.spawn(this);
-        this.packet.pointInfo(world.points);
+        this.spawnProt = 1;
+        this.spawned = true;
     }
 
     resetInputs() {
