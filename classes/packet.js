@@ -5,21 +5,29 @@ class Packet {
         this.data = data;
     }
 
-    pointInfo(pointArray) {
-        for (let point of pointArray) {
-            let packet = [
-                serverPackets.pointInfo,
-                point.id,
-                point.owner,
-                point.x,
-                point.y,
-                point.radius,
-                point.percentCaptured,
-                1,
-                1
-            ].join(",");
-            this.data.packetList.push(packet);
-        }
+    pointInfo(point) {
+        let packet = [
+            serverPackets.pointInfo,
+            point.id,
+            point.owner,
+            point.x,
+            point.y,
+            point.radius,
+            point.percentCaptured,
+            point.capturer,
+            1
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    pointUpdate(point) {
+        let packet = [
+            serverPackets.pointUpdate,
+            point.id,
+            point.percentCaptured.toFixed(2),
+            point.capturedThisTick ? point.owner : ""
+        ].join(",");
+        this.data.packetList.push(packet);
     }
 
     viewbox(player) {
@@ -71,6 +79,27 @@ class Packet {
         ].join(",");
         this.data.packetList.push(packet);
     }
+
+    playerMiscData(player) {
+        let fields = player.updatedFields;
+        let packet = [
+            serverPackets.playerMiscData,
+            player.id,
+            fields.get("firing") ?? "",
+            fields.get("reloading") ?? "",
+            fields.get("beingHit") ?? "",
+            fields.get("hp") ?? "",
+            fields.get("spawnProt") ?? "",
+            fields.get("radius") ?? "",
+            "",
+            fields.get("weapon") ?? "",
+            fields.get("username") ?? "",
+            fields.get("armor") ?? "",
+            fields.get("chat") ?? ""
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
