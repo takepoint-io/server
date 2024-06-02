@@ -6,6 +6,8 @@ class Point {
         this.y = coords[1];
         this.owner = 3;
         this.capturer = 3;
+        this.capturedThisTick = false;
+        this.neutralizedThisTick = false;
         this.ticks = 0;
         this.ticksToCap = points.ticksToCap;
         this.id = id;
@@ -14,7 +16,7 @@ class Point {
     }
 
     update(playersOnPoint) {
-        //0 - nothing happened, 1 - point neutralized, 2 - point taken, 3 - updated status
+        //returns true only if point status changed
         let numCapturing = playersOnPoint.length;
         if (numCapturing == 0) return 0;
         let teamCode = playersOnPoint[0].teamCode;
@@ -22,35 +24,32 @@ class Point {
         if (numCapturing == playersOnPoint.filter(p => p.teamCode == teamCode).length) {
             if (this.owner != teamCode) {
                 if (this.capturer != teamCode) {
+                    this.ticks -= numCapturing;
                     if (this.ticks <= 0) {
                         this.ticks = 0;
                         this.capturer = teamCode;
                         this.owner = 3;
                         this.ticks += numCapturing;
-                        return 1;
+                        this.neutralizedThisTick = true;
                     }
-                    this.ticks -= numCapturing;
-                    return 3;
                 }
                 else if (this.capturer == teamCode) {
                     this.ticks += numCapturing;
                     if (this.ticks >= this.ticksToCap) {
                         this.ticks = this.ticksToCap;
                         this.owner = teamCode;
-                        return 2;
+                        this.capturedThisTick = true;
+                        return true;
                     }
-                    return 3;
                 }
             }
             else {
-                if (this.ticks == this.ticksToCap) {
-                    return 0;
-                }
-                ticks += numCapturing;
-                return 3;
+                if (this.ticks == this.ticksToCap) return false;
+                this.ticks = Math.min(this.ticks + numCapturing, this.ticksToCap);
             }
+            return true;
         }
-        return 0;
+        return false;
     }
 
     get percentCaptured() {
