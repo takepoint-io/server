@@ -30,7 +30,7 @@
         "movement": {
             "baseResistiveForce": 0.4,
             "dragCoefficient": 0.2,
-            "acceleration": 0.85
+            "acceleration": 1
         },
         "scoreAwards": {
             "pointNeutrailzed": 30,

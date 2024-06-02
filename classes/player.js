@@ -66,7 +66,7 @@ class Player {
     }
 
     get maxSpeed() {
-        return this.upgrades.speed + (this.weapon.name == "pistol" ? 13: 10);
+        return this.upgrades.speed + (this.weapon.name == "pistol" ? 8 : 5);
     }
 
     get numInputs() {

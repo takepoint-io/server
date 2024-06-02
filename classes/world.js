@@ -74,7 +74,7 @@ class World {
                 if (statusChanged) {
                     //award the points
                     if (point.neutralizedThisTick) {
-                        for ()
+                        //for ()
                     }
                     for (let [_playerID, player] of this.players) {
                         player.packet.pointUpdate(point);
