@@ -11,8 +11,6 @@ const gameServer = new GameServer(8000, serverConfig.capacity);
 const world = new World(gameServer.players);
 
 gameServer.on("playerJoin", player => {
-    let ping = new Packet({ type: "ping" }).enc();
-    player.sendUpdate(ping);
     world.handlePlayerJoin(player);
 });
 
@@ -22,11 +20,9 @@ gameServer.on("playerMessage", (player, msg) => {
         data = Packet.decode(msg);
     } catch (e) { return };
     if (data.type == "ping") {
-        if (Date.now() - player.socket.lastPing >= 5) {
-            let ping = new Packet({ type: "ping" }).enc();
-            player.sendUpdate(ping);
-            player.socket.lastPing = Date.now();
-        }
+        let ping = new Packet({ type: "ping" }).enc();
+        player.sendUpdate(ping);
+        player.socket.lastPing = Date.now();
         return;
     }
     world.handleMessage(player, data);
