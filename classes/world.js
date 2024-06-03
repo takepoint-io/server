@@ -57,11 +57,6 @@ class World {
                             player.packet.playersOnline(this.players.size);
                         }
                         break;
-                    case "disconnected":
-                        for (let [_playerID, player] of this.players) {
-                            player.packet.playersOnline(this.players.size);
-                        }
-                        break
                 }
             }
         }
@@ -122,6 +117,9 @@ class World {
             if (player.registeredEvents.includes("disconnected")) {
                 this.players.delete(player.id);
                 this.removeFromTree(player);
+                for (let [_playerID, player] of this.players) {
+                    player.packet.playersOnline(this.players.size);
+                }
                 continue;
             }
             player.packet.playerUpdate(player);
@@ -302,6 +300,8 @@ class World {
             case "spawn":
                 this.handleSpawn(player);
                 break;
+            case "chat":
+                this.handleChat(player, data.message);
             default:
                 break;
         }
@@ -328,6 +328,13 @@ class World {
         if (!player.spawned) {
             player.registeredEvents.push("spawned");
             player.spawned = true;
+        }
+    }
+
+    handleChat(player, msg) {
+        if (player.spawned) {
+            let filtered = msg.replace(/[^a-zA-Z0-9\t\n ./<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
+            player.miscUpdates.set("chat", filtered);
         }
     }
 
