@@ -10,10 +10,13 @@ class World {
     constructor(players) {
         this.radius = worldValues.radius;
         this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
+        this.pointStatus = [0, 0, 0];
         this.teams = [
             new Team("red", 0), new Team("green", 1), new Team("blue", 2)
         ];
+        this.leaderboard = [];
         this.players = players;
+        this.guestNames = worldValues.guestNames.map(name => this.initGuestName(name));
         this.objects = new Map();
         this.bullets = new Map();
         this.tickCount = 0;
@@ -27,6 +30,7 @@ class World {
         this.tick();
         this.postTick();
         this.sendUpdates();
+        this.tickCount++;
     }
 
     preTick() {
@@ -41,20 +45,30 @@ class World {
                         for (let point of this.points) {
                             player.packet.pointInfo(point);
                         }
+                        player.packet.teamCtrl(this.pointStatus);
+                        player.packet.leaderboard(this.leaderboard);
                         break;
                     case "connected":
                         for (let point of this.points) {
                             player.packet.pointInfo(point);
                         }
                         player.packet.viewbox(player);
+                        for (let [_playerID, player] of this.players) {
+                            player.packet.playersOnline(this.players.size);
+                        }
                         break;
+                    case "disconnected":
+                        for (let [_playerID, player] of this.players) {
+                            player.packet.playersOnline(this.players.size);
+                        }
+                        break
                 }
             }
         }
     }
 
     tick() {
-        //updates
+        //player updates
         for (let [_playerID, player] of this.players) {
             this.updatePlayerPosition(player);
             if (player.spawned) {
@@ -65,23 +79,18 @@ class World {
         //collision checking
 
         //update points
-        for (let point of this.points) {
-            let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 50))
-                .map(p => this.players.get(p.data.id))
-                .filter(p => p.spawned && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius);
-            if (res.length) {
-                let statusChanged = point.update(res);
-                if (statusChanged) {
-                    //award the points
-                    if (point.neutralizedThisTick) {
-                        //for ()
-                    }
-                    for (let [_playerID, player] of this.players) {
-                        player.packet.pointUpdate(point);
-                        if (point.neutralizedThisTick) player.packet.pointInfo(point);
-                    }
-                }
+        this.updatePoints();
+
+        //updates that should only happen every "x" number of ticks
+        if (this.tickCount % 125 == 0) {
+            //point bonus for # of points capped
+            for (let [_playerID, player] of this.players) {
+                let pointBonus = this.pointStatus[player.teamCode];
+                if (pointBonus > 0) player.addScore(pointBonus);
             }
+        }
+        if (this.tickCount % 10 == 0) {
+            this.updateLeaderboard();
         }
         
         /*
@@ -116,11 +125,15 @@ class World {
                 continue;
             }
             player.packet.playerUpdate(player);
-            if (player.updatedFields.size > 0) {
+            if (player.miscUpdates.size > 0) {
                 player.packet.playerMiscData(player);
             }
+            if (player.formUpdates.size > 0) {
+                player.packet.upgrades(player);
+            }
             player.registeredEvents = [];
-            player.updatedFields.clear();
+            player.miscUpdates.clear();
+            player.formUpdates.clear();
         }
         for (let point of this.points) {
             point.capturedThisTick = false;
@@ -152,6 +165,49 @@ class World {
         for (let [_playerID, player] of this.players) {
             if (player.packet.data.packetList.length == 0) continue;
             player.sendUpdate(player.packet.enc());
+        }
+    }
+
+    updateLeaderboard() {
+        let playerArray = Array.from(this.players, ([n,v]) => v).filter(p => p.spawned);
+        this.leaderboard = playerArray.sort((a, b) => b.score - a.score).slice(0, 10);
+        for (let [_playerID, player] of this.players) {
+            player.packet.leaderboard(this.leaderboard);
+        }
+    }
+
+    updatePoints() {
+        for (let point of this.points) {
+            let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 50))
+                .map(p => this.players.get(p.data.id))
+                .filter(p => p.spawned && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius);
+            if (res.length) {
+                let statusChanged = point.update(res);
+                if (statusChanged) {
+                    //award the points
+                    if (point.neutralizedThisTick) {
+                        for (let player of res) {
+                            player.addScore(worldValues.scoreAwards.pointNeutrailzed * point.scoreMultiplier);
+                            player.packet.serverMessage(Packet.createServerMessage("pointNeutralized"));
+                        }
+                    } else if (point.capturedThisTick) {
+                        this.pointStatus = [
+                            Point.ownedByTeam(0, this.points),
+                            Point.ownedByTeam(1, this.points),
+                            Point.ownedByTeam(2, this.points)
+                        ];
+                        for (let player of res) {
+                            player.addScore(worldValues.scoreAwards.pointTaken * point.scoreMultiplier);
+                            player.packet.serverMessage(Packet.createServerMessage("pointTaken"));
+                        }
+                    }
+                    for (let [_playerID, player] of this.players) {
+                        player.packet.pointUpdate(point);
+                        if (point.neutralizedThisTick) player.packet.pointInfo(point);
+                        if (point.capturedThisTick) player.packet.teamCtrl(this.pointStatus);
+                    }
+                }
+            }
         }
     }
 
@@ -217,6 +273,21 @@ class World {
         return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
+    initGuestName(name) {
+        return {
+            used: false,
+            name: name
+        };
+    }
+
+    allocateGuestName(player) {
+        let available = this.guestNames.filter(name => !name.used);
+        let nameObj = available[Math.floor(Math.random() * available.length)];
+        nameObj.used = true;
+        player.guestName = nameObj.name;
+        player.username = "Guest " + player.guestName;
+    }
+
     handleMessage(player, data) {
         switch (data.type) {
             case "reset":
@@ -243,7 +314,7 @@ class World {
     handleKeyInput(player, key, pressed) {
         if (player.spawned && player.spawnProt) {
             player.spawnProt = 0;
-            player.updatedFields.set("spawnProt", 0);
+            player.miscUpdates.set("spawnProt", 0);
         }
         player.inputs[this.inputTypes[key]] = pressed;
         player.lastInput = Date.now();
@@ -264,6 +335,7 @@ class World {
         player.team = this.getTeam();
         player.teamCode = player.team.id;
         player.team.addPlayer(player);
+        this.allocateGuestName(player);
         player.loadingScreenDir = Math.floor(Math.random() * 8);
         player.registeredEvents.push("connected");
     }

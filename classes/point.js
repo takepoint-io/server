@@ -55,6 +55,10 @@ class Point {
     get percentCaptured() {
         return (this.ticks / this.ticksToCap) * 100;
     }
+
+    static ownedByTeam(teamCode, points) {
+        return points.reduce((a, p) => p.owner == teamCode ? a + 5 * p.scoreMultiplier : a, 0);
+    }
 }
 
 module.exports = Point;
