@@ -35,7 +35,38 @@
         "scoreAwards": {
             "pointNeutrailzed": 30,
             "pointTaken": 450
-        }
+        },
+        "levels": [
+            0,
+            100, 215, 349, 498, 680, 
+            870, 1100, 1400, 1650, 2000, 
+            2400, 2900, 3400, 4000, 4650, 
+            5550, 6400, 7500, 8650, 10000, 
+            11600, 13500, 15600, 18000, 20750
+        ],
+        "guestNames": [
+            "Achilles","Alula","Alya","Andromeda",
+            "Aquarius","Aquila","Ara","Aries",
+            "Artermis","Athena","Atlas","Atom",
+            "Auriga","Azimuth","Carina","Cepheus",
+            "Ceres","Cetus","Corona","Corvus",
+            "Cronos","Crux","Cygnus","Delphinus",
+            "Draco","Eris","Europa","Fornax",
+            "Gemini","Grus","Halley","Haumea",
+            "Helios","Hera","Hercules","Hydra",
+            "Icarus","Iris","Ixion","Juno",
+            "Kappa","Lambda","Leo","Lepus",
+            "Libra","Lynx","Lyra","Mercury",
+            "Minos","Mira","Nebula","Neptune",
+            "Nix","Obelius","Octans","Orcus",
+            "Orion","Pandora","Pavo","Pegasus",
+            "Perseus","Phoenix","Pisces","Poseidon",
+            "Quark","Rhea","Sabik","Saturn",
+            "Scorpius","Sedna","Serpens","Sirius",
+            "Taurus","Tethys","Upsilon","Varuna",
+            "Vega","Vela","Venus","Virgo",
+            "Volans","Vulcan","Xander","Zeta"
+        ]
     },
     "serverValues": {
         "tickrate": 25,
