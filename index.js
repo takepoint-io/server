@@ -54,7 +54,7 @@ function nextTick() {
                 owner: serverConfig.owner,
                 label: serverConfig.label,
                 url: serverConfig.url,
-                players: 0,
+                players: world.players.size,
                 capacity: serverConfig.capacity,
                 short_id: serverConfig.short_id
             }
