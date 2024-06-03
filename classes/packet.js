@@ -1,8 +1,33 @@
-const { serverPackets, clientPackets } = require('../data/enums.json');
+const { serverPackets, clientPackets, messages } = require('../data/enums.json');
 
 class Packet {
     constructor(data = { type: "state", packetList: [] }) {
         this.data = data;
+    }
+
+    serverMessage(message) {
+        let packet = [
+            serverPackets.alert,
+            message[0],
+            message[1]
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    leaderboard(lb) {
+        let packet = [
+            serverPackets.leaderboard,
+            [...lb.map(p => `${p.id}.${p.username}.${p.score}.${p.kills}.${p.teamCode}`)]
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    playersOnline(num) {
+        let packet = [
+            serverPackets.serverPopulation,
+            num
+        ].join(",");
+        this.data.packetList.push(packet);
     }
 
     pointInfo(point) {
@@ -26,6 +51,14 @@ class Packet {
             point.id,
             point.percentCaptured.toFixed(2),
             point.capturedThisTick ? point.owner : ""
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    teamCtrl(teams) {
+        let packet = [
+            serverPackets.teamControl,
+            [...teams.map((t, i) => i + ":" + t)]
         ].join(",");
         this.data.packetList.push(packet);
     }
@@ -59,11 +92,32 @@ class Packet {
             0,
             player.viewbox.x,
             player.viewbox.y,
-            "test1",
+            player.username,
             player.spawnProt,
             player.shield,
             player.maxShield
         ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    upgrades(player) {
+        let fields = player.formUpdates;
+        let packet = Packet.clean([
+            serverPackets.upgrades,
+            fields.get("score") ?? "",
+            fields.get("upgradeAcquired") ?? "",
+            fields.get("totalUpgrades") ?? "",
+            fields.get("unusedUpgrades") ?? "",
+            fields.get("chosenUpgrade") ?? "",
+            "",
+            "",
+            "",
+            fields.get("newAmmoCapacity") ?? "",
+            fields.get("weaponUpgradeAvailable") ?? "",
+            "",
+            fields.get("vx") ?? "",
+            fields.get("vy") ?? ""
+        ]).join(",");
         this.data.packetList.push(packet);
     }
 
@@ -81,8 +135,8 @@ class Packet {
     }
 
     playerMiscData(player) {
-        let fields = player.updatedFields;
-        let packet = [
+        let fields = player.miscUpdates;
+        let packet = Packet.clean([
             serverPackets.playerMiscData,
             player.id,
             fields.get("firing") ?? "",
@@ -96,7 +150,7 @@ class Packet {
             fields.get("username") ?? "",
             fields.get("armor") ?? "",
             fields.get("chat") ?? ""
-        ].join(",");
+        ]).join(",");
         this.data.packetList.push(packet);
     }
 
@@ -178,6 +232,18 @@ class Packet {
                 data.type = "unknown";
         }
         return data;
+    }
+
+    static clean(packet) {
+        for (let i = packet.length - 1; i >= 0; i--) {
+            if (packet[i] === "") packet.pop();
+            else break;
+        }
+        return packet;
+    }
+
+    static createServerMessage(type = 12, toDisplay = "") {
+        return [messages[type], toDisplay];
     }
 }
 
