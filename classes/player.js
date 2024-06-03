@@ -1,5 +1,7 @@
 const Weapon = require("./weapon");
+const Packet = require("./packet");
 const Util = require("./util");
+const { worldValues: { levels } } = require('../data/values.json');
 
 class Player {
     constructor(id, socket) {
@@ -28,21 +30,18 @@ class Player {
         this.objectPool = new Map();
         this.bulletPool = new Map();
         this.angle = Math.floor(Math.random() * 360);
-        this.upgrades = {
-            speed: 0,
-            reload: 0,
-            mags: 0,
-            view: 0, //each level expands viewbox by * 1.1
-            regen: 0
-        };
+        this.resetUpgrades();
+        this.upgradesAvailable = 0;
         this.score = 0;
         this.kills = 0;
         this.level = 0;
         this.weapon = new Weapon("pistol", this); 
+        this.weaponUpgradeAvailable = false;
         this.teamCode = 0;
         this.team = null;
         this.registeredEvents = [];
-        this.updatedFields = new Map();
+        this.miscUpdates = new Map();
+        this.formUpdates = new Map();
 
         this.username = "";
         this.guestName = "";
@@ -53,15 +52,7 @@ class Player {
             y: 0,
             angle: 0
         };
-        this.inputs = {
-            left: false,
-            right: false,
-            up: false,
-            down: false,
-            reload: false,
-            space: false,
-            mouse: false
-        };
+        this.resetInputs();
         this.lastInput = Date.now();
     }
 
@@ -81,6 +72,13 @@ class Player {
         return !this.inputs.up && this.inputs.down ? 1 : this.inputs.up && !this.inputs.down ? -1 : 2;
     }
 
+    get expectedLevel() {
+        for (let i = 0; i < levels.length; i++) {
+            if (this.score < levels[i]) return i;
+        }
+        return levels.length - 1;
+    }
+
     normalizeSpeed() {
         let magnitude = Util.hypot(this.spdX, this.spdY);
         if (magnitude > this.maxSpeed) {
@@ -91,6 +89,17 @@ class Player {
         }
     }
 
+    addScore(amount) {
+        this.score += amount;
+        let expectedLevel = this.expectedLevel;
+        if (this.level < expectedLevel) {
+            this.level = expectedLevel;
+            this.formUpdates.set("level", this.level);
+        }
+        this.formUpdates.set("score", this.score);
+        this.packet.serverMessage(Packet.createServerMessage("score", amount));
+    }
+
     respawn(world) {
         this.resetInputs();
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);
@@ -98,11 +107,26 @@ class Player {
         this.spdY = 0;
         this.health = this.maxHealth;
         this.shield = this.maxShield;
-        this.score = Math.floor(this.score / 4);
+        this.level = 0;
+        this.upgradesAvailable = 0;
+        this.resetUpgrades();
+        let tempScore = this.score
+        this.score = 0;
+        if (tempScore > 0) this.addScore(Math.floor(tempScore / 4));
         this.kills = 0;
         this.weapon = new Weapon("pistol", this);
         this.spawnProt = 1;
         this.spawned = true;
+    }
+
+    resetUpgrades() {
+        this.upgrades = {
+            speed: 0,
+            reload: 0,
+            mags: 0,
+            view: 0, //each level expands viewbox by * 1.1
+            regen: 0
+        };
     }
 
     resetInputs() {
