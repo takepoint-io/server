@@ -407,7 +407,7 @@ class World {
     }
 
     handleUpgrade(player, upgrade) {
-        if (!player.spawned || player.skillPoints == 0 || !(upgrade > 0 && upgrade < 6)) return;
+        if (!player.spawned || player.skillPoints == 0 || !(upgrade > 0 && upgrade < 6) || Object.values(player.upgrades)[upgrade - 1] >= 5) return;
         player.skillPoints--;
         player.formUpdates.set("chosenUpgrade", upgrade);
         player.formUpdates.set("skillPoints", player.skillPoints);
