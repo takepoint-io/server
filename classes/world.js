@@ -76,6 +76,9 @@ class World {
         //update points
         this.updatePoints();
 
+        //update weapons
+        this.updateWeapons();
+
         //update each player's viewbox
         for (let [_playerID, player] of this.players) {
             this.updateView(player);
@@ -134,6 +137,7 @@ class World {
             if (player.formUpdates.size > 0) {
                 player.packet.upgrades(player);
             }
+            player.weapon.postTick();
             player.registeredEvents = [];
             player.miscUpdates.clear();
             player.formUpdates.clear();
@@ -229,6 +233,28 @@ class World {
 
     collisionCheck() {
 
+    }
+
+    updateWeapons() {
+        for (let [_playerID, player] of this.players) {
+            if (!player.spawned) continue;
+            let weapon = player.weapon;
+            if (player.inputs.mouse) {
+                let bullet = weapon.attemptFire();
+                if (bullet) {
+                    player.miscUpdates.set("firing", weapon.firing); 
+                    player.formUpdates.set("ammo", weapon.ammo);
+                }
+            }
+            if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || weapon.ammo == 0)) {
+                player.reloadWeapon();
+            }
+            if (weapon.reloading && weapon.ticksSinceReload >= weapon.ticksBeforeReload) {
+                weapon.finishReload();
+                player.miscUpdates.set("reloading", weapon.reloading);
+                player.formUpdates.set("ammo", weapon.ammo);
+            }
+        }
     }
 
     updateView(player) {
@@ -394,6 +420,9 @@ class World {
                 break;
             case 3:
                 player.upgrades.mags++;
+                player.weapon.updateMaxAmmo();
+                player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
+                player.reloadWeapon();
                 break;
             case 4:
                 player.upgrades.view++;

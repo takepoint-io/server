@@ -109,6 +109,11 @@ class Player {
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }
 
+    reloadWeapon() {
+        this.weapon.startReload();
+        this.miscUpdates.set("reloading", this.weapon.reloading);
+    }
+
     respawn(world) {
         this.spawned = true;
         this.resetInputs();
