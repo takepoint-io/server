@@ -76,6 +76,11 @@ class World {
         //update points
         this.updatePoints();
 
+        //update each player's viewbox
+        for (let [_playerID, player] of this.players) {
+            this.updateView(player);
+        }
+
         //updates that should only happen every "x" number of ticks
         if (this.tickCount % 125 == 0) {
             //point bonus for # of points capped
@@ -84,7 +89,7 @@ class World {
                 if (pointBonus > 0) player.addScore(pointBonus);
             }
         }
-        if (this.tickCount % 10 == 0) {
+        if (this.tickCount % 5 == 0) {
             this.updateLeaderboard();
         }
         
@@ -151,6 +156,19 @@ class World {
         return this.tree.query(query).filter(e => e.data.type == 0);
     }
 
+    queryPlayerView(player) {
+        let vx = player.viewbox.x * 1.1;
+        let vy = player.viewbox.y * 1.1;
+        return this.tree.query(
+            new Box(
+                player.x - vx / 2, 
+                player.y - vy / 2,
+                vx,
+                vy
+            )
+        );
+    }
+
     addCircleToTree(obj) {
         this.tree.insert(new Circle(obj.x, obj.y, obj.radius, { id: obj.id, type: obj.type }));
     }
@@ -211,6 +229,29 @@ class World {
 
     collisionCheck() {
 
+    }
+
+    updateView(player) {
+        let viewbox = this.queryPlayerView(player);
+        for (let i = 0; i < viewbox.length; i++) {
+            let item = viewbox[i];
+            switch (item.data.type) {
+                case 0:
+                    let playerTwo = this.players.get(item.data.id);
+                    if (player.id == playerTwo.id) break;
+                    if (!player.playerPool.has(playerTwo.id)) {
+                        player.playerPool.set(playerTwo.id, playerTwo);
+                        player.packet.playerJoin(playerTwo);
+                    }
+                    if (playerTwo.miscUpdates.size > 0) {
+                        player.packet.playerMiscData(playerTwo);
+                    }
+                    player.packet.playerUpdate(playerTwo);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     updatePlayerPosition(player) {
@@ -300,6 +341,9 @@ class World {
             case "spawn":
                 this.handleSpawn(player);
                 break;
+            case "upgrade":
+                this.handleUpgrade(player, data.value);
+                break;
             case "chat":
                 this.handleChat(player, data.message);
             default:
@@ -322,12 +366,41 @@ class World {
 
     handleMouseInput(player, x, y, angle) {
         player.mouse = { x, y, angle };
+        let playerAngle = Math.round(angle + Math.asin(18 / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) * 180 / Math.PI) + 1;
+        if (playerAngle) {
+            playerAngle %= 360;
+            player.angle = playerAngle;
+        }
     }
 
     handleSpawn(player) {
         if (!player.spawned) {
             player.registeredEvents.push("spawned");
             player.spawned = true;
+        }
+    }
+
+    handleUpgrade(player, upgrade) {
+        if (!player.spawned || player.skillPoints == 0 || !(upgrade > 0 && upgrade < 6)) return;
+        player.skillPoints--;
+        player.formUpdates.set("chosenUpgrade", upgrade);
+        player.formUpdates.set("skillPoints", player.skillPoints);
+        switch (upgrade) {
+            case 1:
+                player.upgrades.speed++;
+                break;
+            case 2:
+                player.upgrades.reload++;
+                break;
+            case 3:
+                player.upgrades.mags++;
+                break;
+            case 4:
+                player.upgrades.view++;
+                break;
+            case 5:
+                player.upgrades.regen++;
+                break;
         }
     }
 
