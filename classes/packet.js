@@ -38,7 +38,7 @@ class Packet {
             point.x,
             point.y,
             point.radius,
-            point.percentCaptured,
+            point.percentCaptured.toFixed(2),
             point.capturer,
             1
         ].join(",");
@@ -105,19 +105,42 @@ class Packet {
         let packet = Packet.clean([
             serverPackets.upgrades,
             fields.get("score") ?? "",
-            fields.get("upgradeAcquired") ?? "",
-            fields.get("totalUpgrades") ?? "",
-            fields.get("unusedUpgrades") ?? "",
+            fields.get("ammo") ?? "",
+            fields.get("level") ?? "",
+            fields.get("skillPoints") ?? "",
             fields.get("chosenUpgrade") ?? "",
             "",
-            "",
-            "",
+            fields.get("perkChosen") ?? "",
+            fields.get("perkCooldown") ?? "",
             fields.get("newAmmoCapacity") ?? "",
             fields.get("weaponUpgradeAvailable") ?? "",
-            "",
+            fields.get("weaponChosen") ?? "",
             fields.get("vx") ?? "",
             fields.get("vy") ?? ""
         ]).join(",");
+        this.data.packetList.push(packet);
+    }
+
+    playerJoin(player) {
+        let packet = [
+            serverPackets.playerJoin,
+            player.id,
+            player.teamCode,
+            player.weapon.id,
+            player.x,
+            player.y,
+            player.radius,
+            player.angle,
+            player.health,
+            player.maxHealth,
+            player.spawnProt,
+            0,
+            0,
+            player.loggedIn,
+            player.username,
+            player.shield,
+            player.maxShield
+        ].join(",");
         this.data.packetList.push(packet);
     }
 
@@ -217,7 +240,12 @@ class Packet {
             case clientPackets.spawn:
                 data.type = "spawn";
                 break;
-
+            
+            case clientPackets.upgrade:
+                data.type = "upgrade";
+                data.value = parseInt(parts[1]);
+                break;
+                
             case clientPackets.gun:
                 data.type = "gun";
                 data.gun = parseInt(parts[1]);

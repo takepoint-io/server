@@ -36,6 +36,7 @@
         "mouse": "m",
         "debug": "r",
         "spawn": "s",
+        "upgrade": "u",
         "gun": "w",
         "adBlock": "x"
     },
