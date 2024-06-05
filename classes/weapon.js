@@ -65,7 +65,7 @@ class Weapon {
     }
 
     static ticksBeforeReload(player) {
-        return 50 - player.upgrades.reload * 5
+        return 45 - player.upgrades.reload * 5
     }
 
     static ticksBeforeFire(id) {
