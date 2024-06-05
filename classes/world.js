@@ -63,11 +63,12 @@ class World {
     }
 
     tick() {
-        //player updates
+        //individual player updates that aren't affected by other events
         for (let [_playerID, player] of this.players) {
             this.updatePlayerPosition(player);
             if (player.spawned) {
                 this.updatePlayerVelocity(player);
+                //this.updatePlayerHealth(player);
             }
         }
         this.updateQuadtree();
@@ -246,6 +247,9 @@ class World {
                     player.formUpdates.set("ammo", weapon.ammo);
                 }
             }
+            if (weapon.ticksSinceFire == weapon.ticksBeforeFire - 1) {
+                player.miscUpdates.set("firing", weapon.firing);
+            }
             if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || weapon.ammo == 0)) {
                 player.reloadWeapon();
             }
@@ -417,6 +421,7 @@ class World {
                 break;
             case 2:
                 player.upgrades.reload++;
+                player.weapon.updateTicksBeforeReload();
                 break;
             case 3:
                 player.upgrades.mags++;
@@ -426,6 +431,10 @@ class World {
                 break;
             case 4:
                 player.upgrades.view++;
+                player.viewbox.x += 147;
+                player.viewbox.y += 83;
+                player.formUpdates.set("vx", player.viewbox.x);
+                player.formUpdates.set("vy", player.viewbox.y);
                 break;
             case 5:
                 player.upgrades.regen++;
@@ -435,6 +444,7 @@ class World {
 
     handleChat(player, msg) {
         if (player.spawned) {
+            if (msg.length > 32) msg = msg.substr(0, 32);
             let filtered = msg.replace(/[^a-zA-Z0-9\t\n ./<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
             player.miscUpdates.set("chat", filtered);
         }
