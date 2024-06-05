@@ -177,6 +177,14 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    playerExit(id) {
+        let packet = [
+            serverPackets.playerExit,
+            id
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;

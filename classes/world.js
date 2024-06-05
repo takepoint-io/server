@@ -233,7 +233,7 @@ class World {
 
     runCollisions() {
         for (let [_playerID, player] of this.players) {
-            this.updateView(player);
+            //do something
         }
     }
 
@@ -264,12 +264,13 @@ class World {
 
     updateView(player) {
         let viewbox = this.queryPlayerView(player);
+        let playersChecked = {};
         for (let i = 0; i < viewbox.length; i++) {
-            let item = viewbox[i];
-            switch (item.data.type) {
+            let entity = viewbox[i];
+            switch (entity.data.type) {
                 case 0:
-                    let playerTwo = this.players.get(item.data.id);
-                    if (player.id == playerTwo.id) break;
+                    let playerTwo = this.players.get(entity.data.id);
+                    if (player.id == playerTwo.id || !playerTwo.spawned) break;
                     if (!player.playerPool.has(playerTwo.id)) {
                         player.playerPool.set(playerTwo.id, playerTwo);
                         player.packet.playerJoin(playerTwo);
@@ -278,9 +279,16 @@ class World {
                         player.packet.playerMiscData(playerTwo);
                     }
                     player.packet.playerUpdate(playerTwo);
+                    playersChecked[playerTwo.id] = true;
                     break;
                 default:
                     break;
+            }
+        }
+        //check every entity that's now in our view and if we didn't get an update for it, remove it
+        for (let [_playerID, p2] of player.playerPool) {
+            if (!playersChecked[_playerID]) {
+                player.packet.playerExit(_playerID);
             }
         }
     }
