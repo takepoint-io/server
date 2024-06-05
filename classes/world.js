@@ -71,20 +71,16 @@ class World {
                 this.updatePlayerHealth(player);
             }
         }
+        //update tree so we can query it later
         this.updateQuadtree();
         //collision checking
-
-        //update points
+        this.runCollisions();
         this.updatePoints();
-
-        //update weapons
         this.updateWeapons();
-
         //update each player's viewbox
         for (let [_playerID, player] of this.players) {
             this.updateView(player);
         }
-
         //updates that should only happen every "x" number of ticks
         if (this.tickCount % 125 == 0) {
             //point bonus for # of points capped
@@ -232,8 +228,10 @@ class World {
         }
     }
 
-    collisionCheck() {
-
+    runCollisions() {
+        for (let [_playerID, player] of this.players) {
+            this.updateView(player);
+        }
     }
 
     updateWeapons() {
@@ -300,9 +298,30 @@ class World {
             player.spdY = Math.round(scrollY * speed);
 
             if (Math.abs(player.x) > 4000 || Math.abs(player.y) > 4000) player.loadingScreenDir = Math.floor(Util.angle(player.x, player.y) / 45);
+            player.x += Math.round(player.spdX);
+            player.y += Math.round(player.spdY);
         }
-        player.x += Math.round(player.spdX);
-        player.y += Math.round(player.spdY);
+        else {
+            let tmpX = player.x;
+            let tmpY = player.y;
+            player.x += Math.round(player.spdX);
+            player.y += Math.round(player.spdY);
+            let distToCenter = Util.hypot(player.x, player.y);
+            if (distToCenter > 4250) {
+                if (Util.hypot(tmpX, tmpY) > 4249) {
+                    player.spdX = 0;
+                    player.spdY = 0;
+                    player.x = tmpX;
+                    player.y = tmpY;
+                }
+                else {
+                    player.spdX = 0;
+                    player.spdY = 0;
+                    player.x = Math.round(player.x * 4250 / distToCenter);
+                    player.y = Math.round(player.y * 4250 / distToCenter);
+                }
+            }
+        }
     }
 
     updatePlayerVelocity(player) {
