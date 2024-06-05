@@ -28,9 +28,9 @@
             "ticksToCap": 300
         },
         "movement": {
-            "baseResistiveForce": 0.4,
+            "baseResistiveForce": 0.6,
             "dragCoefficient": 0.2,
-            "acceleration": 1
+            "acceleration": 1.2
         },
         "scoreAwards": {
             "pointNeutrailzed": 30,
@@ -52,7 +52,7 @@
         "guestNames": [
             "Achilles","Alula","Alya","Andromeda",
             "Aquarius","Aquila","Ara","Aries",
-            "Artemis","Athena","Atlas","Atom",
+            "Artemis","Astra","Athena","Atlas","Atom",
             "Auriga","Azimuth","Carina","Cepheus",
             "Ceres","Cetus","Chara","Charon",
             "Corona","Corvus","Cronos","Crux","Cygnus",
@@ -68,7 +68,7 @@
             "Pegasus","Perseus","Phoenix","Pisces",
             "Poseidon","Quark","Rhea","Sabik",
             "Saturn","Scorpius","Sedna","Serpens",
-            "Sirius","Tarvos","Taurus","Tethys",
+            "Sirius","Tarvos","Taurus","Tethys","Theta",
             "Triton","Upsilon","Varuna","Vega",
             "Vela","Venus","Virgo","Volans",
             "Vulcan","Xander","Zeta"

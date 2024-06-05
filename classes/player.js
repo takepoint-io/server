@@ -11,6 +11,7 @@ class Player {
         this.packet = new Packet();
         
         this.loadingScreenDir = 0;
+        this.inGame = false;
         this.spawnTimeout = 0;
         this.spawned = false;
         this.spawnProt = 0;
@@ -118,6 +119,7 @@ class Player {
     }
 
     respawn(world) {
+        this.inGame = true;
         this.spawned = true;
         this.resetInputs();
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);

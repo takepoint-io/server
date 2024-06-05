@@ -66,7 +66,7 @@ class World {
     }
 
     tick() {
-        //individual player updates that aren't affected by other events
+        this.runCollisions();
         for (let [_playerID, player] of this.players) {
             this.updatePlayerPosition(player);
             if (player.spawned) {
@@ -77,7 +77,6 @@ class World {
         //update tree so we can query it later
         this.updateQuadtree();
         //collision checking
-        this.runCollisions();
         this.updatePoints();
         this.updateWeapons();
         //update each player's viewbox
@@ -95,29 +94,6 @@ class World {
         if (this.tickCount % 5 == 0) {
             this.updateLeaderboard();
         }
-        
-        /*
-        vector<int> playersInRange = getObjectsInGrid(playerGrid, gridCollisionLimits);
-
-        for(int checkingPlayerId : playersInRange){
-            Player* checkingPlayer = &playerObjects.at(checkingPlayerId);
-            if(mTeamCode == 0 || mTeamCode > 0 && checkingPlayer->mTeamCode != mTeamCode){
-                if(checkingPlayer->mId != mId && checkingPlayer->inGame){
-                    if(checkingPlayer->inCollisionRangeOf(mX, mY, speedBuffer)){
-                        int distance = sqrt(pow((checkingPlayer->mX - testXPosition), 2) + pow((checkingPlayer->mY - testYPosition), 2));
-                        if(distance < mRadius + checkingPlayer->mRadius){
-                            int checkingPlayerSpdX = checkingPlayer->mSpdX;
-                            int checkingPlayerSpdY = checkingPlayer->mSpdY;
-                            checkingPlayer->mSpdX = mSpdX;
-                            checkingPlayer->mSpdY = mSpdY;
-                            mSpdX = checkingPlayerSpdX;
-                            mSpdY = checkingPlayerSpdY;
-                            break;
-                        }
-                    }
-                }
-            }
-        }*/
     }
 
     postTick() {
@@ -233,7 +209,27 @@ class World {
 
     runCollisions() {
         for (let [_playerID, player] of this.players) {
-            //do something
+            let testPosition = {
+                x: player.x + Math.round(player.spdX),
+                y: player.y + Math.round(player.spdY)
+            };
+            let nearbyEntities = this.tree.query(new Circle(player.x, player.y, 100));
+            let nearbyCollidable = nearbyEntities.filter(e => e.data.type == 0 && e.data.id != player.id);
+            for (let i = 0; i < nearbyCollidable.length; i++) {
+                let checkingPlayer = this.players.get(nearbyCollidable[i].data.id);
+                if (player.teamCode != checkingPlayer.teamCode && checkingPlayer.inGame) {
+                    let distance = Math.sqrt((checkingPlayer.x - testPosition.x) ** 2 + (checkingPlayer.y - testPosition.y) ** 2);
+                    if (distance < player.radius + checkingPlayer.radius) {
+                        let checkingPlayerSpdX = checkingPlayer.spdX;
+                        let checkingPlayerSpdY = checkingPlayer.spdY;
+                        checkingPlayer.spdX = player.spdX;
+                        checkingPlayer.spdY = player.spdY;
+                        player.spdX = checkingPlayerSpdX;
+                        player.spdY = checkingPlayerSpdY;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -336,22 +332,37 @@ class World {
     }
 
     updatePlayerVelocity(player) {
-        //Update velocity based on player input, 2x acceleration if opposite dir
+        //Update velocity based on player input
         let signX = Math.sign(player.spdX);
         let signY = Math.sign(player.spdY);
-        if (player.inputs.left  && !player.inputs.right) player.spdX -= worldValues.movement.acceleration * (signX == 1 ? 2 : 1);
-        if (player.inputs.right && !player.inputs.left ) player.spdX += worldValues.movement.acceleration * (signX == 1 ? 1 : 2);
-        if (player.inputs.up    && !player.inputs.down ) player.spdY -= worldValues.movement.acceleration * (signY == 1 ? 2 : 1);
-        if (player.inputs.down  && !player.inputs.up   ) player.spdY += worldValues.movement.acceleration * (signY == 1 ? 1 : 2);
+
+        let oldSpdX = player.spdX;
+        let oldSpdY = player.spdY;
+        if (player.inputs.left  && !player.inputs.right) player.spdX -= worldValues.movement.acceleration
+        if (player.inputs.right && !player.inputs.left ) player.spdX += worldValues.movement.acceleration
+        if (player.inputs.up    && !player.inputs.down ) player.spdY -= worldValues.movement.acceleration
+        if (player.inputs.down  && !player.inputs.up   ) player.spdY += worldValues.movement.acceleration
 
         //Apply a resistive force that increases as velocity increases
-        let resistX = worldValues.movement.dragCoefficient * (player.spdX / player.maxSpeed) + Math.sign(player.spdX) * worldValues.movement.baseResistiveForce;
-        let resistY = worldValues.movement.dragCoefficient * (player.spdY / player.maxSpeed) + Math.sign(player.spdY) * worldValues.movement.baseResistiveForce;
+        let resistX = Math.sign(player.spdX) * worldValues.movement.baseResistiveForce;
+        let resistY = Math.sign(player.spdY) * worldValues.movement.baseResistiveForce;
 
         if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
         else player.spdX -= resistX;
         if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
         else player.spdY -= resistY;
+
+        if (player.numInputs > 1) {
+            let maxSpeedDiagonal = player.maxSpeed * Math.SQRT1_2;
+            if (Math.abs(player.spdX) > maxSpeedDiagonal) {
+                let diff = player.spdX - maxSpeedDiagonal * Math.sign(player.spdX);
+                player.spdX -= diff * 0.25;
+            }
+            if (Math.abs(player.spdY) > maxSpeedDiagonal) {
+                let diff = player.spdY - maxSpeedDiagonal * Math.sign(player.spdY);
+                player.spdY -= diff * 0.25;
+            }
+        }
 
         player.spdX = Util.clamp(player.spdX, -player.maxSpeed, player.maxSpeed);
         player.spdY = Util.clamp(player.spdY, -player.maxSpeed, player.maxSpeed);
