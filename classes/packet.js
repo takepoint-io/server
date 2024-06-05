@@ -270,7 +270,7 @@ class Packet {
         return packet;
     }
 
-    static createServerMessage(type = 12, toDisplay = "") {
+    static createServerMessage(type = "misc", toDisplay = "") {
         return [messages[type], toDisplay];
     }
 }

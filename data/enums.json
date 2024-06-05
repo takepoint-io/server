@@ -55,6 +55,10 @@
         "multiKill": 5,
         "killed": 6,
         "pointNeutralized": 7,
-        "pointTaken": 8
+        "pointTaken": 8,
+        "selfDestruct": 9,
+        "died": 10,
+        "afk": 11,
+        "misc": 12
     }
 }

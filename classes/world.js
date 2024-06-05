@@ -57,6 +57,9 @@ class World {
                             player.packet.playersOnline(this.players.size);
                         }
                         break;
+                    case "afk":
+                        player.packet.serverMessage(Packet.createServerMessage("afk", 60 * 25));
+                        break;
                 }
             }
         }
@@ -420,6 +423,7 @@ class World {
         }
         player.inputs[this.inputTypes[key]] = pressed;
         player.lastInput = Date.now();
+        player.afk = false;
     }
 
     handleMouseInput(player, x, y, angle) {

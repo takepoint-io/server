@@ -6,8 +6,8 @@ const Packet = require('./packet');
 
 class GameServer extends EventEmitter {
     #limits = {
-        pingSocketTTL: 12 * 1000,
-        playerIdle: 120 * 1000,
+        pingSocketTTL: 12_000,
+        playerIdle: 120_000,
         packetsPerTick: 50
     }
     constructor(port, capacity) {
@@ -81,7 +81,10 @@ class GameServer extends EventEmitter {
 
     globalSweep() {
         this.players.forEach(player => {
-            //TODO: kick inactive players
+            if (this.#limits.playerIdle - (Date.now() - player.lastInput) < 60_000 && !player.afk) {
+                player.registeredEvents.push("afk");
+                player.afk = true;
+            }
             if (Date.now() - player.lastInput > this.#limits.playerIdle) {
                 player.socket.close();
             }

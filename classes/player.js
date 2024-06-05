@@ -8,6 +8,7 @@ class Player {
         this.id = id;
         this.type = 0; //players are type 0. objects will be type 1, and bullets will be type 2.
         this.socket = socket;
+        this.packet = new Packet();
         
         this.loadingScreenDir = 0;
         this.spawnTimeout = 0;
@@ -51,6 +52,7 @@ class Player {
         };
         this.resetInputs();
         this.lastInput = Date.now();
+        this.afk = false;
     }
 
     get maxSpeed() {
