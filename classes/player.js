@@ -18,6 +18,7 @@ class Player {
         this.shield = 0;
         this.maxHealth = 100;
         this.maxShield = 100;
+        this.accumulatedHealth = 0;
         this.x = 0;
         this.y = 0;
         this.spdX = 0;
@@ -122,6 +123,7 @@ class Player {
         this.spdY = 0;
         this.health = this.maxHealth;
         this.shield = this.maxShield;
+        this.accumulatedHealth = 0;
         this.level = 0;
         this.resetSkillPoints();
         this.resetUpgrades();

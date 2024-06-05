@@ -68,7 +68,7 @@ class World {
             this.updatePlayerPosition(player);
             if (player.spawned) {
                 this.updatePlayerVelocity(player);
-                //this.updatePlayerHealth(player);
+                this.updatePlayerHealth(player);
             }
         }
         this.updateQuadtree();
@@ -326,6 +326,15 @@ class World {
         player.spdX = Util.clamp(player.spdX, -player.maxSpeed, player.maxSpeed);
         player.spdY = Util.clamp(player.spdY, -player.maxSpeed, player.maxSpeed);
         player.normalizeSpeed();
+    }
+
+    updatePlayerHealth(player) {
+        let healedThisTick = 0.04 + 0.02 * player.upgrades.regen;
+        player.accumulatedHealth += healedThisTick;
+        if (player.accumulatedHealth < 1) return;
+        player.health = Util.clamp(player.health + Math.floor(player.accumulatedHealth), 0, player.maxHealth);
+        player.accumulatedHealth -= Math.floor(player.accumulatedHealth);
+        player.miscUpdates.set("hp", player.health);
     }
 
     getSpawnPoint(teamCode) {
