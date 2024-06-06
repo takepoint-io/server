@@ -7,6 +7,14 @@ class Util {
         } else return value;
     }
 
+    static randRange(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    static toRadians(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
     static angle(x, y) {
         return (((Math.atan2(y, x) * 180) / Math.PI) + 360) % 360;
     }
