@@ -5,9 +5,9 @@ const World = require('./classes/world');
 const Packet = require('./classes/packet');
 const { serverValues } = require('./data/values.json');
 const serverConfig = require('./config.json');
-const APIUrl = serverConfig.dev ? 'http://127.0.0.1:8080' : 'https://takepoint.io';
+const APIUrl = serverConfig.APIUrl || 'http://127.0.0.1:8080';
 
-const gameServer = new GameServer(8000, serverConfig.capacity);
+const gameServer = new GameServer(serverConfig.port || 8000, serverConfig.capacity);
 const world = new World(gameServer.players);
 
 gameServer.on("playerJoin", player => {
@@ -53,7 +53,7 @@ function nextTick() {
                 game_type: serverConfig.game_type,
                 owner: serverConfig.owner,
                 label: serverConfig.label,
-                url: serverConfig.url,
+                url: serverConfig.url || "localhost:8000",
                 players: world.players.size,
                 capacity: serverConfig.capacity,
                 short_id: serverConfig.short_id
