@@ -34,8 +34,7 @@ class Player {
         this.score = 0;
         this.kills = 0;
         this.level = 0;
-        this.weapon = new Weapon("pistol", this); 
-        this.weaponUpgradeAvailable = 0;
+        this.resetWeapon();
         this.teamCode = 0;
         this.team = null;
         this.registeredEvents = [];
@@ -54,6 +53,22 @@ class Player {
         this.resetInputs();
         this.lastInput = Date.now();
         this.afk = false;
+    }
+
+    get rX() {
+        return Math.round(this.x);
+    }
+
+    get rY() {
+        return Math.round(this.y);
+    }
+
+    get rSpdX() {
+        return Math.round(this.spdX);
+    }
+
+    get rSpdY() {
+        return Math.round(this.spdY);
     }
 
     get maxSpeed() {
@@ -108,14 +123,23 @@ class Player {
                 }
                 this.formUpdates.set("skillPoints", this.skillPoints);
             }
+            if (this.level >= upgradesAtLevel.gun && !this.weaponUpgradeAvailable && !this.weaponUpgradeSelected) {
+                this.weaponUpgradeAvailable = 1;
+                this.formUpdates.set("weaponUpgradeAvailable", this.weaponUpgradeAvailable);
+            }
         }
         this.formUpdates.set("score", this.score);
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }
 
-    reloadWeapon() {
-        this.weapon.startReload();
-        this.miscUpdates.set("reloading", this.weapon.reloading);
+    resetWeapon() {
+        this.weapon = new Weapon("pistol", this);
+        this.weaponUpgradeAvailable = 0;
+        this.weaponUpgradeSelected = 0;
+    }
+
+    setWeapon(weaponName) {
+        this.weapon = new Weapon(weaponName, this);
     }
 
     respawn(world) {
@@ -136,7 +160,7 @@ class Player {
         this.score = 0;
         if (tempScore > 0) this.addScore(Math.floor(tempScore / 4));
         this.kills = 0;
-        this.weapon = new Weapon("pistol", this);
+        this.resetWeapon();
         this.spawnProt = 1;
     }
 

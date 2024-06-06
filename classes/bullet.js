@@ -22,8 +22,24 @@ class Bullet {
         Bullet.bullets.set(this.id, this);
     }
 
+    get rX() {
+        return Math.round(this.x);
+    }
+
+    get rY() {
+        return Math.round(this.y);
+    }
+
+    get rSpdX() {
+        return Math.round(this.velocity.x);
+    }
+
+    get rSpdY() {
+        return Math.round(this.velocity.y)
+    }
+
     tick() {
-        
+
     }
 
     static getBulletID() {
