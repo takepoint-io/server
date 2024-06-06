@@ -63,6 +63,14 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    minimap(team) {
+        let packet = [
+            serverPackets.minimap,
+            [...team.values()].map(p => p.rX + ":" + p.rY)
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     viewbox(player) {
         let packet = [
             serverPackets.viewbox,
@@ -79,8 +87,8 @@ class Packet {
             player.id,
             player.teamCode,
             player.weapon.id,
-            player.x,
-            player.y,
+            player.rX,
+            player.rY,
             player.radius,
             player.angle,
             player.health,
@@ -127,8 +135,8 @@ class Packet {
             player.id,
             player.teamCode,
             player.weapon.id,
-            player.x,
-            player.y,
+            player.rX,
+            player.rY,
             player.radius,
             player.angle,
             player.health,
@@ -148,10 +156,10 @@ class Packet {
         let packet = [
             serverPackets.playerUpdate,
             player.id,
-            player.x,
-            player.y,
-            Math.round(player.spdX),
-            Math.round(player.spdY),
+            player.rX,
+            player.rY,
+            player.rSpdX,
+            player.rSpdY,
             player.angle
         ].join(",");
         this.data.packetList.push(packet);
