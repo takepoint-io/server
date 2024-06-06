@@ -41,7 +41,7 @@ const serverStats = {
 function nextTick() {
     world.evalTick();
 
-    if (Date.now() - serverStats.lastAPIUpdate > serverConfig.APIUpdateFreq) {
+    if (Date.now() - serverStats.lastAPIUpdate > serverConfig.APIUpdateFreq || 10) {
         axios.post(`${APIUrl}/register_instance`, {
             auth: {
                 id: serverStats.id,
