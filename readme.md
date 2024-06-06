@@ -5,12 +5,14 @@ Clone the repo and run `npm install`. Then, make sure to create a `config.json` 
 {
     "dev": <boolean>,
     "APIUpdateFreq": <int seconds>,
+    "APIUrl": <String || http://127.0.0.1:8080>,
+    "port": <int || 8000>,
     "region": <String contintent>,
     "city": <String city>,
     "game_type": "3TEAM",
     "owner": null,
     "label": null,
-    "url": "localhost:8000",
+    "url": <String || localhost:8000>,
     "capacity": <int capacity>,
     "short_id": null
 }
