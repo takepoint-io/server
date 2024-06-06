@@ -28,9 +28,7 @@
             "ticksToCap": 300
         },
         "movement": {
-            "baseResistiveForce": 0.6,
-            "dragCoefficient": 0.2,
-            "acceleration": 1.2
+            "baseResistiveForce": 0.6
         },
         "scoreAwards": {
             "pointNeutrailzed": 30,
@@ -48,6 +46,10 @@
             "skillPoints": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 16, 19, 22, 25],
             "gun": 10,
             "perk": 15
+        },
+        "maxEntities": {
+            "objects": 2000,
+            "bullets": 3000
         },
         "guestNames": [
             "Achilles","Alula","Alya","Andromeda",
