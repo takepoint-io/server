@@ -1,6 +1,7 @@
-const { QuadTree, Box, Circle  } = require('js-quadtree');
+const { QuadTree, Box, Circle } = require('js-quadtree');
 const Packet = require('./packet');
 const Point = require('./point');
+const Bullet = require('./bullet');
 const Team = require('./team');
 const Util = require('./util');
 const { worldValues } = require('../data/values.json');
@@ -17,8 +18,6 @@ class World {
         this.leaderboard = [];
         this.players = players;
         this.guestNames = worldValues.guestNames.map(name => this.initGuestName(name));
-        this.objects = new Map();
-        this.bullets = new Map();
         this.tickCount = 0;
         this.tree = new QuadTree(new Box(-4250, -4250, 8500, 8500), { 
             arePointsEqual: (point1, point2) => point1.data.type == point2.data.type && point1.data.id == point2.data.id
@@ -74,15 +73,14 @@ class World {
                 this.updatePlayerHealth(player);
             }
         }
-        //update tree so we can query it later
-        this.updateQuadtree();
-        //collision checking
         this.updatePoints();
         this.updateWeapons();
+        this.updateQuadtree();
         //update each player's viewbox
         for (let [_playerID, player] of this.players) {
             this.updateView(player);
         }
+        this.updateMinimap();
         //updates that should only happen every "x" number of ticks
         if (this.tickCount % 125 == 0) {
             //point bonus for # of points capped
@@ -207,11 +205,17 @@ class World {
         }
     }
 
+    updateMinimap() {
+        for (let [_playerID, player] of this.players) {
+            player.packet.minimap(player.team.players);
+        }
+    }
+
     runCollisions() {
         for (let [_playerID, player] of this.players) {
             let testPosition = {
-                x: player.x + Math.round(player.spdX),
-                y: player.y + Math.round(player.spdY)
+                x: player.x + player.spdX,
+                y: player.y + player.spdY
             };
             let nearbyEntities = this.tree.query(new Circle(player.x, player.y, 100));
             let nearbyCollidable = nearbyEntities.filter(e => e.data.type == 0 && e.data.id != player.id);
@@ -238,8 +242,8 @@ class World {
             if (!player.spawned) continue;
             let weapon = player.weapon;
             if (player.inputs.mouse) {
-                let bullet = weapon.attemptFire();
-                if (bullet) {
+                let bullets = weapon.attemptFire();
+                if (bullets) {
                     player.miscUpdates.set("firing", weapon.firing); 
                     player.formUpdates.set("ammo", weapon.ammo);
                 }
@@ -248,7 +252,8 @@ class World {
                 player.miscUpdates.set("firing", weapon.firing);
             }
             if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || weapon.ammo == 0)) {
-                player.reloadWeapon();
+                weapon.startReload();
+                player.miscUpdates.set("reloading", player.weapon.reloading);
             }
             if (weapon.reloading && weapon.ticksSinceReload >= weapon.ticksBeforeReload) {
                 weapon.finishReload();
@@ -282,11 +287,14 @@ class World {
             }
         }
         //check every entity that's now in our view and if we didn't get an update for it, remove it
+        let playersToRemove = [];
         for (let [_playerID, p2] of player.playerPool) {
             if (!playersChecked[_playerID]) {
                 player.packet.playerExit(_playerID);
+                playersToRemove.push(_playerID);
             }
         }
+        for (let i = 0; i < playersToRemove.length; i++) { player.playerPool.delete(playersToRemove[i]); }
     }
 
     updatePlayerPosition(player) {
@@ -301,18 +309,18 @@ class World {
             if (player.loadingScreenDir > 2 && player.loadingScreenDir < 6 ) scrollX = 1;
             
             if (scrollX && scrollY) speed *= Math.SQRT1_2;
-            player.spdX = Math.round(scrollX * speed);
-            player.spdY = Math.round(scrollY * speed);
+            player.spdX = scrollX * speed;
+            player.spdY = scrollY * speed;
 
             if (Math.abs(player.x) > 4000 || Math.abs(player.y) > 4000) player.loadingScreenDir = Math.floor(Util.angle(player.x, player.y) / 45);
-            player.x += Math.round(player.spdX);
-            player.y += Math.round(player.spdY);
+            player.x += player.spdX;
+            player.y += player.spdY;
         }
         else {
             let tmpX = player.x;
             let tmpY = player.y;
-            player.x += Math.round(player.spdX);
-            player.y += Math.round(player.spdY);
+            player.x += player.spdX;
+            player.y += player.spdY;
             let distToCenter = Util.hypot(player.x, player.y);
             if (distToCenter > 4250) {
                 if (Util.hypot(tmpX, tmpY) > 4249) {
@@ -332,27 +340,25 @@ class World {
     }
 
     updatePlayerVelocity(player) {
-        //Update velocity based on player input
-        let signX = Math.sign(player.spdX);
-        let signY = Math.sign(player.spdY);
-
-        let oldSpdX = player.spdX;
-        let oldSpdY = player.spdY;
-        if (player.inputs.left  && !player.inputs.right) player.spdX -= worldValues.movement.acceleration
-        if (player.inputs.right && !player.inputs.left ) player.spdX += worldValues.movement.acceleration
-        if (player.inputs.up    && !player.inputs.down ) player.spdY -= worldValues.movement.acceleration
-        if (player.inputs.down  && !player.inputs.up   ) player.spdY += worldValues.movement.acceleration
-
         //Apply a resistive force that increases as velocity increases
-        let resistX = Math.sign(player.spdX) * worldValues.movement.baseResistiveForce;
-        let resistY = Math.sign(player.spdY) * worldValues.movement.baseResistiveForce;
+        let coefficients = player.numInputs ? 
+            { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
+            { x: 0.5, y: 0.5}
+        let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
+        let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
 
         if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
         else player.spdX -= resistX;
         if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
         else player.spdY -= resistY;
 
-        if (player.numInputs > 1) {
+        //Update velocity based on player input
+        if (player.inputs.left  && !player.inputs.right) player.spdX -= player.maxSpeed / 8;
+        if (player.inputs.right && !player.inputs.left ) player.spdX += player.maxSpeed / 8;
+        if (player.inputs.up    && !player.inputs.down ) player.spdY -= player.maxSpeed / 8;
+        if (player.inputs.down  && !player.inputs.up   ) player.spdY += player.maxSpeed / 8;
+
+        /*if (player.numInputs > 1) {
             let maxSpeedDiagonal = player.maxSpeed * Math.SQRT1_2;
             if (Math.abs(player.spdX) > maxSpeedDiagonal) {
                 let diff = player.spdX - maxSpeedDiagonal * Math.sign(player.spdX);
@@ -362,7 +368,7 @@ class World {
                 let diff = player.spdY - maxSpeedDiagonal * Math.sign(player.spdY);
                 player.spdY -= diff * 0.25;
             }
-        }
+        }*/
 
         player.spdX = Util.clamp(player.spdX, -player.maxSpeed, player.maxSpeed);
         player.spdY = Util.clamp(player.spdY, -player.maxSpeed, player.maxSpeed);
@@ -424,6 +430,9 @@ class World {
             case "upgrade":
                 this.handleUpgrade(player, data.value);
                 break;
+            case "gun":
+                this.handleGunUpgrade(player, data.gun);
+                break;
             case "chat":
                 this.handleChat(player, data.message);
             default:
@@ -462,7 +471,7 @@ class World {
     }
 
     handleUpgrade(player, upgrade) {
-        if (!player.spawned || player.skillPoints == 0 || !(upgrade > 0 && upgrade < 6) || Object.values(player.upgrades)[upgrade - 1] >= 5) return;
+        if (!player.spawned || player.skillPoints == 0 || !(upgrade >= 1 && upgrade <= 5) || Object.values(player.upgrades)[upgrade - 1] >= 5) return;
         player.skillPoints--;
         player.formUpdates.set("chosenUpgrade", upgrade);
         player.formUpdates.set("skillPoints", player.skillPoints);
@@ -477,8 +486,9 @@ class World {
             case 3:
                 player.upgrades.mags++;
                 player.weapon.updateMaxAmmo();
+                player.weapon.startReload();
                 player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
-                player.reloadWeapon();
+                player.miscUpdates.set("reloading", player.weapon.reloading);
                 break;
             case 4:
                 player.upgrades.view++;
@@ -493,12 +503,23 @@ class World {
         }
     }
 
+    handleGunUpgrade(player, weaponID) {
+        if (!player.spawned || !player.weaponUpgradeAvailable || !(weaponID >= 0 && weaponID <= 4)) return;
+        player.setWeapon(["pistol", "assault", "sniper", "shotgun"][weaponID]);
+        player.weaponUpgradeSelected = 1;
+        player.weaponUpgradeAvailable = 0;
+        player.miscUpdates.set("weapon", player.weapon.id);
+        player.formUpdates.set("weaponChosen", player.weapon.id);
+        player.formUpdates.set("weaponUpgradeAvailable", player.weaponUpgradeAvailable);
+        player.formUpdates.set("ammo", player.weapon.ammo);
+        player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
+    }
+
     handleChat(player, msg) {
-        if (player.spawned) {
-            if (msg.length > 32) msg = msg.substr(0, 32);
-            let filtered = msg.replace(/[^a-zA-Z0-9\t\n ./<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
-            player.miscUpdates.set("chat", filtered);
-        }
+        if (!player.spawned) return;
+        if (msg.length > 32) msg = msg.substr(0, 32);
+        let filtered = msg.replace(/[^a-zA-Z0-9\t\n ./<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
+        player.miscUpdates.set("chat", filtered);
     }
 
     handlePlayerJoin(player) {
