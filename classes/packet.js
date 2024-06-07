@@ -179,7 +179,7 @@ class Packet {
             "",
             fields.get("weapon") ?? "",
             fields.get("username") ?? "",
-            fields.get("armor") ?? "",
+            fields.get("shield") ?? "",
             fields.get("chat") ?? ""
         ]).join(",");
         this.data.packetList.push(packet);
@@ -188,6 +188,38 @@ class Packet {
     playerExit(id) {
         let packet = [
             serverPackets.playerExit,
+            id
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    bulletJoin(bullet) {
+        let packet = [
+            serverPackets.bulletJoin,
+            bullet.id,
+            bullet.parentWeapon.id,
+            bullet.rX,
+            bullet.rY,
+            bullet.angle,
+            bullet.rSpdX,
+            bullet.rSpdY
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    bulletUpdate(bullet) {
+        let packet = [
+            serverPackets.bulletMove,
+            bullet.id,
+            bullet.rX,
+            bullet.rY
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    bulletExit(id) {
+        let packet = [
+            serverPackets.bulletExit,
             id
         ].join(",");
         this.data.packetList.push(packet);
