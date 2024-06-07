@@ -12,6 +12,7 @@ class Player {
         
         this.loadingScreenDir = 0;
         this.inGame = false;
+        this.dying = false;
         this.spawnTimeout = 0;
         this.spawned = false;
         this.spawnProt = 0;
@@ -70,7 +71,7 @@ class Player {
     }
 
     get maxSpeed() {
-        return this.upgrades.speed + (this.weapon.name == "pistol" ? 8 : 5);
+        return this.upgrades.speed * 0.5 + (this.weapon.name == "pistol" ? 10.5 : 8.5);
     }
 
     get numInputs() {
@@ -147,6 +148,7 @@ class Player {
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);
         this.spdX = 0;
         this.spdY = 0;
+        this.radius = 25;
         this.health = this.maxHealth;
         this.shield = this.maxShield;
         this.accumulatedHealth = 0;
