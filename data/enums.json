@@ -15,6 +15,7 @@
         "gasGrenadeJoin": "n",
         "gasGrenadeExit": "o",
         "serverPopulation": "p",
+        "hitMarker": "q",
         "alert": "r",
         "viewbox": "v",
         "leaderboard": "w",

@@ -274,17 +274,20 @@ class World {
                         p2: { x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y }
                     };
                     let hit = Util.circleLineSegmentIntersect(entity.testPosition, segment, entity.radius + bullet.size);
-                    if (hit) hits.push(entity);
+                    if (hit) hits.push({ entity: entity, pos: hit });
                 }
             }
             if (hits.length == 0) continue;
             bullet.shouldDespawn = true;
-            let closest = { entity: null, dist: Infinity }
+            let closest = { entity: null, dist: Infinity, pos: null };
             for (let i = 0; i < hits.length; i++) {
-                let dist = Util.distance(hits[i].testPosition, bullet.spawnedAt);
+                let dist = Util.distance(hits[i].entity.testPosition, bullet.spawnedAt);
                 if (dist < closest.dist) {
-                    closest.entity = hits[i];
-                    closest.dist = dist;
+                    closest = {
+                        entity: hits[i].entity,
+                        dist: dist,
+                        pos: hits[i].pos
+                    };
                 } 
             }
             switch (closest.entity.type) {
@@ -295,9 +298,14 @@ class World {
                         player.miscUpdates.set("shield", player.shield);
                     }
                     if (player.shield == 0) {
+                        let tmpHealth = player.health;
                         player.health = Util.clamp(player.health - bullet.dmg, 0, player.maxHealth);
                         player.miscUpdates.set("hp", player.health);
+                        let delta = tmpHealth - player.health;
+                        if (delta > 0) bullet.player.addScore(delta);
+                        if (player.health == 0) this.onPlayerDeath(player, bullet.player);
                     }
+                    bullet.player.packet.hitMarker(closest.pos);
                     break;
             }
         }
@@ -317,7 +325,7 @@ class World {
             if (weapon.ticksSinceFire == weapon.ticksBeforeFire - 1) {
                 player.miscUpdates.set("firing", weapon.firing);
             }
-            if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || (weapon.ammo == 0 && weapon.ticksSinceFire < weapon.ticksBeforeFire))) {
+            if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || (weapon.ammo == 0 && weapon.ticksSinceFire >= weapon.ticksBeforeFire))) {
                 weapon.startReload();
                 player.miscUpdates.set("reloading", player.weapon.reloading);
             }
@@ -434,12 +442,12 @@ class World {
         let coefficients = player.numInputs ? 
             { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
             { x: 0.5, y: 0.5}
-        if (!player.inputs.left && !player.inputs.right) {
+        if (player.inputs.left == player.inputs.right) {
             let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
             if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
             else player.spdX -= resistX;
         }
-        if (!player.inputs.up && !player.inputs.down) {
+        if (player.inputs.up == player.inputs.down) {
             let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
             if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
             else player.spdY -= resistY;
@@ -469,12 +477,26 @@ class World {
     }
 
     updatePlayerHealth(player) {
-        let healedThisTick = 0.04 + 0.02 * player.upgrades.regen;
-        player.accumulatedHealth += healedThisTick;
-        if (player.accumulatedHealth < 1) return;
-        player.health = Util.clamp(player.health + Math.floor(player.accumulatedHealth), 0, player.maxHealth);
-        player.accumulatedHealth -= Math.floor(player.accumulatedHealth);
-        player.miscUpdates.set("hp", player.health);
+        if (!player.dying) {
+            let healedThisTick = 0.04 + 0.02 * player.upgrades.regen;
+            player.accumulatedHealth += healedThisTick;
+            if (player.accumulatedHealth < 1) return;
+            player.health = Util.clamp(player.health + Math.floor(player.accumulatedHealth), 0, player.maxHealth);
+            player.accumulatedHealth -= Math.floor(player.accumulatedHealth);
+            player.miscUpdates.set("hp", player.health);
+        }
+        else {
+            player.radius--;
+            if (player.radius == 0) {
+                player.dying = false;
+                player.spawned = false;
+            }
+        }
+    }
+
+    onPlayerDeath(player, killer) {
+        player.inGame = false;
+        player.dying = true;
     }
 
     getSpawnPoint(teamCode) {

@@ -193,6 +193,15 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    hitMarker(pos) {
+        let packet = [
+            serverPackets.hitMarker,
+            pos.x,
+            pos.y
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     bulletJoin(bullet) {
         let packet = [
             serverPackets.bulletJoin,

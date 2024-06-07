@@ -52,11 +52,25 @@ class Util {
         let t1 = (-b - discriminant) / (2 * a);
         let t2 = (-b + discriminant) / (2 * a);
         
-        let intersections = 0;
+        let intersections = [];
         //check both of our solutions
-        if (t1 >= 0 && t1 <= 1) intersections++;
-        if (t2 >= 0 && t2 <= 1) intersections++;
-        return intersections > 0;
+        if (t1 >= 0 && t1 <= 1) {
+            intersections.push({
+                x: Math.round(lineSegment.p1.x + t1 * dx),
+                y: Math.round(lineSegment.p1.y + t1 * dy)
+            });
+        }
+        if (t2 >= 0 && t2 <= 1) {
+            intersections.push({
+                x: Math.round(lineSegment.p1.x + t2 * dx),
+                y: Math.round(lineSegment.p1.y + t2 * dy)
+            });
+        }
+
+        //let's return the closest intersection for convenience :)
+        if (intersections.length == 0) return null;
+        if (intersections.length == 1) return intersections[0];
+        return intersections.sort((a, b) => Util.distance(circle, b) - Util.distance(circle, a))[0];
     }
 }
 
