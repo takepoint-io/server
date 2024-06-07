@@ -49,7 +49,7 @@
         },
         "maxEntities": {
             "objects": 2000,
-            "bullets": 3000
+            "bullets": 2000
         },
         "guestNames": [
             "Achilles","Alula","Alya","Andromeda",
