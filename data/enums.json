@@ -8,7 +8,7 @@
         "upgrades": "f",
         "bulletJoin": "g",
         "bulletMove": "h",
-        "bullletExit": "i",
+        "bulletExit": "i",
         "objectJoin": "j",
         "objectUpdate": "k",
         "objectExit": "l",
