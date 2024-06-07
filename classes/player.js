@@ -26,9 +26,6 @@ class Player {
         this.spdX = 0;
         this.spdY = 0;
         this.resetViewbox();
-        this.playerPool = new Map();
-        this.objectPool = new Map();
-        this.bulletPool = new Map();
         this.angle = Math.floor(Math.random() * 360);
         this.resetUpgrades();
         this.score = 0;
@@ -37,6 +34,7 @@ class Player {
         this.resetWeapon();
         this.teamCode = 0;
         this.team = null;
+        this.collisions = [];
         this.registeredEvents = [];
         this.miscUpdates = new Map();
         this.formUpdates = new Map();
@@ -196,6 +194,9 @@ class Player {
             x: 1468,
             y: 826
         };
+        this.playerPool = new Map();
+        this.objectPool = new Map();
+        this.bulletPool = new Map();
     }
 
     sendUpdate(packet) {
