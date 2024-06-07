@@ -25,26 +25,26 @@ class Weapon {
     get x() {
         switch (this.id) {
             case weapons.pistol:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 18)) * 60);
+                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 16)) * 65);
             case weapons.assault:
                 return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 15)) * 82);
             case weapons.sniper:
                 return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 8)) * 130);
             case weapons.shotgun:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 20)) * 60);
+                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 14)) * 90);
         }
     }
 
     get y() {
         switch (this.id) {
             case weapons.pistol:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 18)) * 60);
+                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 16)) * 65);
             case weapons.assault:
                 return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 15)) * 82);
             case weapons.sniper:
                 return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 8)) * 130);
             case weapons.shotgun:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 20)) * 60);
+                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 14)) * 90);
         }
     }
 
@@ -143,20 +143,20 @@ class Weapon {
             case weapons.sniper:
                 return 26;
             case weapons.shotgun:
-                return 4;
+                return 24;
         }
     }
 
     static range(id) {
         switch (id) {
             case weapons.pistol:
-                return 570;
+                return 675;
             case weapons.assault:
-                return 510;
+                return 650;
             case weapons.sniper:
-                return 800;
+                return 1000;
             case weapons.shotgun:
-                return 210;
+                return 350;
         }
     }
 
@@ -185,7 +185,7 @@ class Weapon {
             case weapons.assault:
                 return 3;
             case weapons.sniper:
-                return 20;
+                return 21;
             case weapons.shotgun:
                 return 10;
         }

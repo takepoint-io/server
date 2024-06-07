@@ -11,7 +11,8 @@ class Bullet {
         this.ownerID = player.id;
         this.createdAt = Date.now();
         this.parentWeapon = player.weapon;
-        this.angle = angle;
+        this.player = player;
+        this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
         this.velocity = {
             x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed) + player.spdX,
@@ -47,6 +48,10 @@ class Bullet {
         return Util.hypot((this.x + this.velocity.x) - this.spawnedAt.x, (this.y + this.velocity.y) - this.spawnedAt.y);
     }
 
+    get distanceFromPlayer() {
+        return Util.hypot((this.x + this.velocity.x) - this.player.x, (this.y + this.velocity.y) - this.player.y);
+    }
+
     get dmg() {
         return this.parentWeapon.damage - Math.floor(this.distanceFromSpawn / this.parentWeapon.damageDropDistance);
     }
@@ -54,7 +59,7 @@ class Bullet {
     tick() {
         this.x += this.velocity.x;
         this.y += this.velocity.y;
-        if (this.distanceFromSpawn >= this.parentWeapon.range) this.shouldDespawn = true;
+        if (this.distanceFromPlayer >= this.parentWeapon.range) this.shouldDespawn = true;
     }
 
     static getBulletID() {
