@@ -74,6 +74,7 @@ class World {
             }
         }
         this.updatePoints();
+        this.updateBullets();
         this.updateWeapons();
         this.updateQuadtree();
         //update each player's viewbox
@@ -113,6 +114,7 @@ class World {
             }
             player.weapon.postTick();
             player.registeredEvents = [];
+            player.collisions = [];
             player.miscUpdates.clear();
             player.formUpdates.clear();
         }
@@ -127,6 +129,9 @@ class World {
         for (let [_playerID, player] of this.players) {
             if (!player.spawned) continue;
             this.addCircleToTree(player);
+        }
+        for (let [_bulletID, bullet] of Bullet.bullets) {
+            this.addEntityToTree(bullet);
         }
     }
 
@@ -149,6 +154,10 @@ class World {
 
     addCircleToTree(obj) {
         this.tree.insert(new Circle(obj.x, obj.y, obj.radius, { id: obj.id, type: obj.type }));
+    }
+
+    addEntityToTree(obj) {
+        this.tree.insert(new Box(obj.x, obj.y, 0, 0, { id: obj.id, type: obj.type }));
     }
 
     removeFromTree(obj) {
@@ -207,22 +216,24 @@ class World {
 
     updateMinimap() {
         for (let [_playerID, player] of this.players) {
-            player.packet.minimap(player.team.players);
+            if (player.spawned) player.packet.minimap(player.team.players);
         }
     }
 
     runCollisions() {
+        //player-to-player collisions
         for (let [_playerID, player] of this.players) {
-            let testPosition = {
+            if (!player.inGame) continue;
+            player.testPosition = {
                 x: player.x + player.spdX,
                 y: player.y + player.spdY
             };
             let nearbyEntities = this.tree.query(new Circle(player.x, player.y, 100));
-            let nearbyCollidable = nearbyEntities.filter(e => e.data.type == 0 && e.data.id != player.id);
-            for (let i = 0; i < nearbyCollidable.length; i++) {
-                let checkingPlayer = this.players.get(nearbyCollidable[i].data.id);
-                if (player.teamCode != checkingPlayer.teamCode && checkingPlayer.inGame) {
-                    let distance = Math.sqrt((checkingPlayer.x - testPosition.x) ** 2 + (checkingPlayer.y - testPosition.y) ** 2);
+            let nearbyPlayers = nearbyEntities.filter(e => e.data.type == 0 && e.data.id != player.id);
+            for (let i = 0; i < nearbyPlayers.length; i++) {
+                let checkingPlayer = this.players.get(nearbyPlayers[i].data.id);
+                if (player.teamCode != checkingPlayer.teamCode && checkingPlayer.inGame && !player.collisions.includes(checkingPlayer.id)) {
+                    let distance = Math.sqrt((checkingPlayer.x - player.testPosition.x) ** 2 + (checkingPlayer.y - player.testPosition.y) ** 2);
                     if (distance < player.radius + checkingPlayer.radius) {
                         let checkingPlayerSpdX = checkingPlayer.spdX;
                         let checkingPlayerSpdY = checkingPlayer.spdY;
@@ -230,9 +241,64 @@ class World {
                         checkingPlayer.spdY = player.spdY;
                         player.spdX = checkingPlayerSpdX;
                         player.spdY = checkingPlayerSpdY;
+                        player.collisions.push(checkingPlayer.id);
+                        checkingPlayer.collisions.push(player.id);
                         break;
                     }
                 }
+            }
+        }
+        //bullet-entity collisions
+        for (let [_bulletID, bullet] of Bullet.bullets) {
+            let nearbyEntities = this.tree.query(new Circle(bullet.x, bullet.y, 50));
+            let thingsToHit = nearbyEntities.filter(e => e.data.type == 0 || e.data.type == 1);
+            let hits = [];
+            for (let i = 0; i < thingsToHit.length; i++) {
+                let entityType = thingsToHit[i].data.type;
+                let entityID = thingsToHit[i].data.id;
+                let entity;
+                if (entityType == 0) {
+                    let player = this.players.get(entityID);
+                    if (!player.inGame || player.spawnProt) continue;
+                    player.testPosition = {
+                        x: player.x + player.spdX,
+                        y: player.y + player.spdY
+                    };
+                    entity = player;
+                } else if (entity.type == 1) {
+                    //TODO: add other entities
+                }
+                if (entity.teamCode != bullet.teamCode) {
+                    let segment = {
+                        p1: { x: bullet.x, y: bullet.y },
+                        p2: { x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y }
+                    };
+                    let hit = Util.circleLineSegmentIntersect(entity.testPosition, segment, entity.radius + bullet.size);
+                    if (hit) hits.push(entity);
+                }
+            }
+            if (hits.length == 0) continue;
+            bullet.shouldDespawn = true;
+            let closest = { entity: null, dist: Infinity }
+            for (let i = 0; i < hits.length; i++) {
+                let dist = Util.distance(hits[i].testPosition, bullet.spawnedAt);
+                if (dist < closest.dist) {
+                    closest.entity = hits[i];
+                    closest.dist = dist;
+                } 
+            }
+            switch (closest.entity.type) {
+                case 0:
+                    let player = closest.entity;
+                    if (player.shield > 0) {
+                        player.shield = Util.clamp(player.shield - bullet.dmg, 0, player.maxShield);
+                        player.miscUpdates.set("shield", player.shield);
+                    }
+                    if (player.shield == 0) {
+                        player.health = Util.clamp(player.health - bullet.dmg, 0, player.maxHealth);
+                        player.miscUpdates.set("hp", player.health);
+                    }
+                    break;
             }
         }
     }
@@ -251,7 +317,7 @@ class World {
             if (weapon.ticksSinceFire == weapon.ticksBeforeFire - 1) {
                 player.miscUpdates.set("firing", weapon.firing);
             }
-            if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || weapon.ammo == 0)) {
+            if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || (weapon.ammo == 0 && weapon.ticksSinceFire < weapon.ticksBeforeFire))) {
                 weapon.startReload();
                 player.miscUpdates.set("reloading", player.weapon.reloading);
             }
@@ -263,9 +329,20 @@ class World {
         }
     }
 
+    updateBullets() {
+        for (let [_bulletID, bullet] of Bullet.bullets) {
+            if (bullet.shouldDespawn) {
+                Bullet.bullets.delete(_bulletID);
+                Bullet.returnBulletID(_bulletID);
+            }
+            else bullet.tick();
+        }
+    }
+
     updateView(player) {
         let viewbox = this.queryPlayerView(player);
         let playersChecked = {};
+        let bulletsChecked = {};
         for (let i = 0; i < viewbox.length; i++) {
             let entity = viewbox[i];
             switch (entity.data.type) {
@@ -282,19 +359,32 @@ class World {
                     player.packet.playerUpdate(playerTwo);
                     playersChecked[playerTwo.id] = true;
                     break;
+                case 2:
+                    let bullet = Bullet.bullets.get(entity.data.id);
+                    if (!player.bulletPool.has(bullet.id)) {
+                        player.bulletPool.set(bullet.id, bullet);
+                        player.packet.bulletJoin(bullet);
+                    }
+                    player.packet.bulletUpdate(bullet);
+                    bulletsChecked[bullet.id] = true;
+                    break;
                 default:
                     break;
             }
         }
         //check every entity that's now in our view and if we didn't get an update for it, remove it
-        let playersToRemove = [];
         for (let [_playerID, p2] of player.playerPool) {
             if (!playersChecked[_playerID]) {
                 player.packet.playerExit(_playerID);
-                playersToRemove.push(_playerID);
+                player.playerPool.delete(_playerID)
             }
         }
-        for (let i = 0; i < playersToRemove.length; i++) { player.playerPool.delete(playersToRemove[i]); }
+        for (let [_bulletID, bullet] of player.bulletPool) {
+            if (!bulletsChecked[_bulletID]) {
+                player.packet.bulletExit(_bulletID);
+                player.bulletPool.delete(_bulletID);
+            }
+        }
     }
 
     updatePlayerPosition(player) {
@@ -313,14 +403,14 @@ class World {
             player.spdY = scrollY * speed;
 
             if (Math.abs(player.x) > 4000 || Math.abs(player.y) > 4000) player.loadingScreenDir = Math.floor(Util.angle(player.x, player.y) / 45);
-            player.x += player.spdX;
-            player.y += player.spdY;
+            player.x += player.rSpdX;
+            player.y += player.rSpdY;
         }
         else {
             let tmpX = player.x;
             let tmpY = player.y;
-            player.x += player.spdX;
-            player.y += player.spdY;
+            player.x += player.rSpdX;
+            player.y += player.rSpdY;
             let distToCenter = Util.hypot(player.x, player.y);
             if (distToCenter > 4250) {
                 if (Util.hypot(tmpX, tmpY) > 4249) {
@@ -340,17 +430,20 @@ class World {
     }
 
     updatePlayerVelocity(player) {
-        //Apply a resistive force that increases as velocity increases
+        //Apply a resistive force if not moving in direction
         let coefficients = player.numInputs ? 
             { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
             { x: 0.5, y: 0.5}
-        let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
-        let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
-
-        if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
-        else player.spdX -= resistX;
-        if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
-        else player.spdY -= resistY;
+        if (!player.inputs.left && !player.inputs.right) {
+            let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
+            if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
+            else player.spdX -= resistX;
+        }
+        if (!player.inputs.up && !player.inputs.down) {
+            let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
+            if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
+            else player.spdY -= resistY;
+        }
 
         //Update velocity based on player input
         if (player.inputs.left  && !player.inputs.right) player.spdX -= player.maxSpeed / 8;
@@ -412,6 +505,7 @@ class World {
         player.guestName = nameObj.name;
         player.username = "Guest " + player.guestName;
     }
+
 
     handleMessage(player, data) {
         switch (data.type) {
