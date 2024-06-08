@@ -39,7 +39,6 @@ class Point {
                         this.ticks = this.ticksToCap;
                         this.owner = teamCode;
                         this.capturedThisTick = true;
-                        return true;
                     }
                 }
             }
@@ -50,6 +49,11 @@ class Point {
             return true;
         }
         return false;
+    }
+
+    postTick() {
+        this.capturedThisTick = false;
+        this.neutralizedThisTick = false;
     }
 
     get percentCaptured() {

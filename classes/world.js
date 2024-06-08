@@ -119,8 +119,7 @@ class World {
             player.formUpdates.clear();
         }
         for (let point of this.points) {
-            point.capturedThisTick = false;
-            point.neutralizedThisTick = false;
+            point.postTick();
         }
     }
 
