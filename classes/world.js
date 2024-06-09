@@ -440,7 +440,7 @@ class World {
         //Apply a resistive force if not moving in direction
         let coefficients = player.numInputs ? 
             { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
-            { x: 0.5, y: 0.5}
+            { x: 0.5, y: 0.5};
         if (player.inputs.left == player.inputs.right) {
             let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
             if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
@@ -453,10 +453,10 @@ class World {
         }
 
         //Update velocity based on player input
-        if (player.inputs.left  && !player.inputs.right) player.spdX -= player.maxSpeed / 8;
-        if (player.inputs.right && !player.inputs.left ) player.spdX += player.maxSpeed / 8;
-        if (player.inputs.up    && !player.inputs.down ) player.spdY -= player.maxSpeed / 8;
-        if (player.inputs.down  && !player.inputs.up   ) player.spdY += player.maxSpeed / 8;
+        if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
+        if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
+        if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
+        if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
 
         /*if (player.numInputs > 1) {
             let maxSpeedDiagonal = player.maxSpeed * Math.SQRT1_2;
