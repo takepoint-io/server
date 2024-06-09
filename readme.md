@@ -3,6 +3,7 @@ This project requires Node.js and npm to run.<br>
 Clone the repo and run `npm install`. Then, make sure to create a `config.json` in the project root as follows:
 ```json
 {
+    "dev": <boolean>,
     "APIUpdateFreq": <int seconds>,
     "APIUrl": <String || http://127.0.0.1:8080>,
     "port": <int || 8000>,
