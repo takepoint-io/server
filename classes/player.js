@@ -177,6 +177,7 @@ class Player {
             view: 0, //each level expands viewbox by * 1.1
             regen: 0
         };
+        this.perk = null;
     }
 
     resetInputs() {
