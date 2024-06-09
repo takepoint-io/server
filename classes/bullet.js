@@ -57,6 +57,10 @@ class Bullet {
     }
 
     tick() {
+        if (this.shouldDespawn) {
+            Bullet.bullets.delete(this.id);
+            Bullet.returnBulletID(this.id);
+        }
         this.x += this.velocity.x;
         this.y += this.velocity.y;
         if (this.distanceFromCreator >= this.parentWeapon.range) this.shouldDespawn = true;
