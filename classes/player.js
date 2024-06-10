@@ -16,6 +16,7 @@ class Player {
         this.spawnTimeout = 0;
         this.spawned = false;
         this.spawnProt = 0;
+        this.beingHit = 0;
         this.radius = 25;
         this.health = 0;
         this.shield = 0;
@@ -139,6 +140,7 @@ class Player {
     respawn(world) {
         this.inGame = true;
         this.spawned = true;
+        this.beingHit = 0;
         this.resetInputs();
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);
         this.spdX = 0;

@@ -307,6 +307,8 @@ class World {
                         let tmpHealth = player.health;
                         player.health = Util.clamp(player.health - bullet.dmg, 0, player.maxHealth);
                         player.miscUpdates.set("hp", player.health);
+                        player.beingHit = 1;
+                        player.miscUpdates.set("beingHit", player.beingHit);
                         let delta = tmpHealth - player.health;
                         if (delta > 0) bullet.player.addScore(delta);
                         if (player.health == 0) this.onPlayerDeath(player, bullet.player);
