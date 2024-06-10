@@ -201,9 +201,9 @@ class World {
                         }
                     } else if (point.capturedThisTick) {
                         this.pointStatus = [
-                            Point.ownedByTeam(0, this.points),
-                            Point.ownedByTeam(1, this.points),
-                            Point.ownedByTeam(2, this.points)
+                            Point.percentByTeam(0, this.points),
+                            Point.percentByTeam(1, this.points),
+                            Point.percentByTeam(2, this.points)
                         ];
                         for (let player of res) {
                             player.addScore(worldValues.scoreAwards.pointTaken * point.scoreMultiplier);
@@ -511,10 +511,32 @@ class World {
     }
 
     getSpawnPoint(teamCode) {
-        //choose point on edge if the team controls no points
-        let angle = Math.random() * Math.PI * 2;
-        let x = Math.cos(angle) * (this.radius - 100);
-        let y = Math.sin(angle) * (this.radius - 100);
+        let spawnPointData = {
+            offsetX: 0,
+            offsetY: 0, 
+            angle: Math.random() * Math.PI * 2
+        };
+        let ownedByTeam = Point.cappedByTeam(teamCode, this.points);
+        if (ownedByTeam.length > 0) {
+            //choose random coords inside closest point using rejection sampling
+            let point = ownedByTeam[0];
+            spawnPointData.radius = point.radius;
+            while (true) {
+                let x = (2 * point.radius * Math.random()) - point.radius;
+                let y = (2 * point.radius * Math.random()) - point.radius;
+                if (x ** 2 + y ** 2 < Math.sqrt(point.radius)) {
+                    spawnPointData.offsetX = point.x + x;
+                    spawnPointData.offsetY = point.y + y;
+                    break;
+                }
+            }
+        }
+        else {
+            //choose point on edge if the team controls no points
+            spawnPointData.radius = this.devMode ? 100 : this.radius - 100;
+        }
+        let x = Math.cos(spawnPointData.angle) * spawnPointData.radius + spawnPointData.offsetX;
+        let y = Math.sin(spawnPointData.angle) * spawnPointData.radius + spawnPointData.offsetY;
         return [Math.floor(x), Math.floor(y)];
     }
 

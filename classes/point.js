@@ -60,7 +60,11 @@ class Point {
         return (this.ticks / this.ticksToCap) * 100;
     }
 
-    static ownedByTeam(teamCode, points) {
+    static cappedByTeam(teamCode, points) {
+        return points.filter(p => p.owner == teamCode && p.ticks == p.ticksToCap);
+    }
+
+    static percentByTeam(teamCode, points) {
         return points.reduce((a, p) => p.owner == teamCode ? a + 5 * p.scoreMultiplier : a, 0);
     }
 }
