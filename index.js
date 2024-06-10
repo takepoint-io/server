@@ -6,9 +6,10 @@ const Packet = require('./classes/packet');
 const { serverValues } = require('./data/values.json');
 const serverConfig = require('./config.json');
 const APIUrl = serverConfig.APIUrl || 'http://127.0.0.1:8080';
+const serverPort = serverConfig.port || 8000;
 
-const gameServer = new GameServer(serverConfig.port || 8000, serverConfig.capacity);
-const world = new World(gameServer.players);
+const gameServer = new GameServer(serverPort, serverConfig.capacity);
+const world = new World(gameServer.players, serverConfig.dev);
 
 gameServer.on("playerJoin", player => {
     world.handlePlayerJoin(player);
@@ -53,7 +54,7 @@ function nextTick() {
                 game_type: serverConfig.game_type,
                 owner: serverConfig.owner,
                 label: serverConfig.label,
-                url: serverConfig.url || "localhost:8000",
+                url: serverConfig.url || "localhost:" + serverPort,
                 players: world.players.size,
                 capacity: serverConfig.capacity,
                 short_id: serverConfig.short_id
