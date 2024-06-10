@@ -4,19 +4,19 @@ const Util = require('./util');
 class Bullet {
     static bulletIDs = new Array(worldValues.maxEntities.bullets).fill(null).map((e, i) => i + 1);
     static bullets = new Map();
-    constructor(creator, angle) {
+    constructor(player, angle) {
         this.id = Bullet.getBulletID();
         this.type = 2;
-        this.teamCode = creator.teamCode;
-        this.ownerID = creator.id;
+        this.teamCode = player.teamCode;
+        this.ownerID = player.id;
         this.createdAt = Date.now();
-        this.parentWeapon = creator.weapon;
-        this.creator = creator;
+        this.parentWeapon = player.weapon;
+        this.player = player;
         this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
         this.velocity = {
-            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed) + creator.spdX || 0,
-            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed) + creator.spdY || 0
+            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed) + player.spdX || 0,
+            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed) + player.spdY || 0
         };
         this.size = this.parentWeapon.bulletSize;
         this.x = this.parentWeapon.x;
@@ -48,8 +48,8 @@ class Bullet {
         return Util.hypot((this.x + this.velocity.x) - this.spawnedAt.x, (this.y + this.velocity.y) - this.spawnedAt.y);
     }
 
-    get distanceFromCreator() {
-        return Util.hypot((this.x + this.velocity.x) - this.creator.x, (this.y + this.velocity.y) - this.creator.y);
+    get distanceFromPlayer() {
+        return Util.hypot((this.x + this.velocity.x) - this.player.x, (this.y + this.velocity.y) - this.player.y);
     }
 
     get dmg() {
@@ -63,7 +63,7 @@ class Bullet {
         }
         this.x += this.velocity.x;
         this.y += this.velocity.y;
-        if (this.distanceFromCreator >= this.parentWeapon.range) this.shouldDespawn = true;
+        if (this.distanceFromPlayer >= this.parentWeapon.range) this.shouldDespawn = true;
     }
 
     static getBulletID() {
