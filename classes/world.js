@@ -3,12 +3,17 @@ const Packet = require('./packet');
 const Point = require('./point');
 const Bullet = require('./bullet');
 const Team = require('./team');
+const Perks = [
+    'barrier',
+    'health'
+].map(e => require('./objects/' + e));
 const Util = require('./util');
 const { worldValues } = require('../data/values.json');
 
 class World {
     inputTypes = ["left", "right", "up", "down", "reload", "space", "mouse"];
-    constructor(players) {
+    constructor(players, devMode) {
+        this.devMode = devMode;
         this.radius = worldValues.radius;
         this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
         this.pointStatus = [0, 0, 0];
@@ -40,6 +45,7 @@ class World {
                 switch (event) {
                     case "spawned":
                         player.respawn(this);
+                        if (this.devMode) player.addScore(20000);
                         player.packet.spawn(player);
                         for (let point of this.points) {
                             player.packet.pointInfo(point);
@@ -74,6 +80,7 @@ class World {
             }
         }
         this.updatePoints();
+        this.updatePerks();
         this.updateBullets();
         this.updateWeapons();
         this.updateQuadtree();
@@ -312,7 +319,7 @@ class World {
 
     updateWeapons() {
         for (let [_playerID, player] of this.players) {
-            if (!player.spawned) continue;
+            if (!player.inGame) continue;
             let weapon = player.weapon;
             if (player.inputs.mouse) {
                 let bullets = weapon.attemptFire();
@@ -336,13 +343,16 @@ class World {
         }
     }
 
+    updatePerks() {
+        for (let [_playerID, player] of this.players) {
+            if (!player.inGame || !player.perkUpgradeSelected) continue;
+            if (player.perkCooldown > 0) player.perkCooldown--;
+        }
+    }
+
     updateBullets() {
         for (let [_bulletID, bullet] of Bullet.bullets) {
-            if (bullet.shouldDespawn) {
-                Bullet.bullets.delete(_bulletID);
-                Bullet.returnBulletID(_bulletID);
-            }
-            else bullet.tick();
+            bullet.tick();
         }
     }
 
@@ -548,6 +558,9 @@ class World {
             case "gun":
                 this.handleGunUpgrade(player, data.gun);
                 break;
+            case "perk":
+                this.handlePerkUpgrade(player, data.perk);
+                break;
             case "chat":
                 this.handleChat(player, data.message);
             default:
@@ -570,6 +583,7 @@ class World {
     }
 
     handleMouseInput(player, x, y, angle) {
+        if (!player.inGame) return;
         player.mouse = { x, y, angle };
         let playerAngle = Math.round(angle + Math.asin(18 / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) * 180 / Math.PI) + 1;
         if (playerAngle) {
@@ -619,15 +633,26 @@ class World {
     }
 
     handleGunUpgrade(player, weaponID) {
-        if (!player.spawned || !player.weaponUpgradeAvailable || !(weaponID >= 0 && weaponID <= 4)) return;
+        if (!player.inGame || !player.weaponUpgradeAvailable || !(weaponID >= 0 && weaponID <= 4)) return;
         player.setWeapon(["pistol", "assault", "sniper", "shotgun"][weaponID]);
         player.weaponUpgradeSelected = 1;
         player.weaponUpgradeAvailable = 0;
         player.miscUpdates.set("weapon", player.weapon.id);
+        player.miscUpdates.set("reloading", player.weapon.reloading);
         player.formUpdates.set("weaponChosen", player.weapon.id);
         player.formUpdates.set("weaponUpgradeAvailable", player.weaponUpgradeAvailable);
         player.formUpdates.set("ammo", player.weapon.ammo);
         player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
+    }
+
+    handlePerkUpgrade(player, perkID) {
+        if (!player.inGame || !player.perkUpgradeAvailable || perkID < 1 || perkID > Perks.length) return; 
+        player.perkID = perkID;
+        player.perkUpgradeSelected = 1;
+        player.perkUpgradeAvailable = 0;
+        player.perkCooldown = 0;
+        player.formUpdates.set("perkChosen", player.perkID);
+        player.formUpdates.set("perkUpgradeAvailable", player.perkUpgradeAvailable);
     }
 
     handleChat(player, msg) {

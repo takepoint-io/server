@@ -47,8 +47,22 @@
             "gun": 10,
             "perk": 15
         },
+        "perks": {
+            "barrier": {
+                "radius": 35,
+                "lifespan": 7200,
+                "cooldown": 30,
+                "maxHealth": 250
+            },
+            "health": {
+                "radius": 20,
+                "lifespan": 10,
+                "cooldown": 15,
+                "healingAmount": 50
+            }
+        },
         "maxEntities": {
-            "objects": 2000,
+            "objects": 1999,
             "bullets": 999
         },
         "guestNames": [

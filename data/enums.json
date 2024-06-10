@@ -35,6 +35,7 @@
         "userAgent": "h",
         "keypress": "k",
         "mouse": "m",
+        "perk": "p",
         "debug": "r",
         "spawn": "s",
         "upgrade": "u",

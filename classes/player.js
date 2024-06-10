@@ -33,6 +33,7 @@ class Player {
         this.kills = 0;
         this.level = 0;
         this.resetWeapon();
+        this.resetPerk();
         this.teamCode = 0;
         this.team = null;
         this.collisions = [];
@@ -126,19 +127,13 @@ class Player {
                 this.weaponUpgradeAvailable = 1;
                 this.formUpdates.set("weaponUpgradeAvailable", this.weaponUpgradeAvailable);
             }
+            if (this.level >= upgradesAtLevel.perk && !this.perkUpgradeAvailable && !this.perkUpgradeSelected) {
+                this.perkUpgradeAvailable = 1;
+                this.formUpdates.set("perkUpgradeAvailable", this.perkUpgradeAvailable);
+            }
         }
         this.formUpdates.set("score", this.score);
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
-    }
-
-    resetWeapon() {
-        this.weapon = new Weapon("pistol", this);
-        this.weaponUpgradeAvailable = 0;
-        this.weaponUpgradeSelected = 0;
-    }
-
-    setWeapon(weaponName) {
-        this.weapon = new Weapon(weaponName, this);
     }
 
     respawn(world) {
@@ -155,12 +150,13 @@ class Player {
         this.level = 0;
         this.resetSkillPoints();
         this.resetUpgrades();
+        this.resetWeapon();
+        this.resetPerk();
         this.resetViewbox();
-        let tempScore = this.score
+        let tempScore = this.score;
         this.score = 0;
         if (tempScore > 0) this.addScore(Math.floor(tempScore / 4));
         this.kills = 0;
-        this.resetWeapon();
         this.spawnProt = 1;
     }
 
@@ -177,7 +173,23 @@ class Player {
             view: 0, //each level expands viewbox by * 1.1
             regen: 0
         };
-        this.perk = null;
+    }
+
+    resetPerk() {
+        this.perkID = null;
+        this.perkUpgradeAvailable = 0;
+        this.perkUpgradeSelected = 0;
+        this.perkCooldown = 0;
+    }
+
+    resetWeapon() {
+        this.weapon = new Weapon("pistol", this);
+        this.weaponUpgradeAvailable = 0;
+        this.weaponUpgradeSelected = 0;
+    }
+
+    setWeapon(weaponName) {
+        this.weapon = new Weapon(weaponName, this);
     }
 
     resetInputs() {

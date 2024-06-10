@@ -117,7 +117,7 @@ class Packet {
             fields.get("level") ?? "",
             fields.get("skillPoints") ?? "",
             fields.get("chosenUpgrade") ?? "",
-            "",
+            fields.get("perkUpgradeAvailable") ?? "",
             fields.get("perkChosen") ?? "",
             fields.get("perkCooldown") ?? "",
             fields.get("newAmmoCapacity") ?? "",
@@ -308,6 +308,11 @@ class Packet {
                 data.gun = parseInt(parts[1]);
                 break;
             
+            case clientPackets.perk:
+                data.type = "perk";
+                data.perk = parseInt(parts[1]);
+                break;
+
             case clientPackets.adBlock:
                 data.type = "adBlock",
                 data.enabled = parseInt(parts[1]);
