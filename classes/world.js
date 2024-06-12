@@ -114,6 +114,7 @@ class World {
             }
             else if (player.registeredEvents.includes("despawned")) {
                 player.packet.playerExit(player.id);
+                player.packet.stats(player);
             }
             player.packet.playerUpdate(player);
             if (player.miscUpdates.size > 0) {
