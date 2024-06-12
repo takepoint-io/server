@@ -240,11 +240,16 @@ class Packet {
             player.score,
             player.level,
             player.kills,
-            player.stats.timeAlive,
+            player.stats.ticksAlive,
             player.stats.accuracy,
             player.stats.pointsNeutralized,
             player.stats.pointsTaken
         ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    respawnButtonAvailable() {
+        let packet = serverPackets.respawn;
         this.data.packetList.push(packet);
     }
 

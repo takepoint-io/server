@@ -113,7 +113,10 @@ class World {
                 continue;
             }
             else if (player.registeredEvents.includes("despawned")) {
+                player.spawnTimeout = 50;
+                player.informedOfRespawn = false;
                 player.packet.playerExit(player.id);
+                player.stats.setTimeAlive();
                 player.packet.stats(player);
             }
             player.packet.playerUpdate(player);
@@ -128,6 +131,11 @@ class World {
             player.collisions = [];
             player.miscUpdates.clear();
             player.formUpdates.clear();
+            if (player.spawnTimeout > 0) player.spawnTimeout--;
+            if (player.spawnTimeout == 0 && !player.informedOfRespawn) {
+                player.packet.respawnButtonAvailable();
+                player.informedOfRespawn = true;
+            }
         }
         for (let point of this.points) {
             point.postTick();
@@ -508,8 +516,6 @@ class World {
             if (player.radius == 0) {
                 player.dying = false;
                 player.spawned = false;
-                player.stats.setTimeAlive();
-                player.stats.setAccuracy();
                 player.registeredEvents.push("despawned");
             }
         }

@@ -13,6 +13,7 @@ class Player {
         this.loadingScreenDir = 0;
         this.inGame = false;
         this.dying = false;
+        this.informedOfRespawn = true;
         this.spawnTimeout = 0;
         this.spawned = false;
         this.spawnProt = 0;
@@ -166,13 +167,18 @@ class Player {
     resetGameStats() {
         this.stats = {
             spawnTime: Date.now(),
-            bulletsFired: 2,
-            bulletsHit: 1,
+            bulletsFired: 0,
+            bulletsHit: 0,
             pointsNeutralized: 0,
-            pointsTaken: 0
+            pointsTaken: 0,
+            get ticksAlive() {
+                return Math.floor(this.timeAlive / 40);
+            },
+            get accuracy() {
+                return this.bulletsFired == 0 ? "-" : (this.bulletsHit / this.bulletsFired).toFixed(2);
+            }
         };
         this.stats.setTimeAlive = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;
-        this.stats.setAccuracy = () => this.stats.accuracy = (this.stats.bulletsHit / this.stats.bulletsFired).toFixed(2);
     }
 
     resetSkillPoints() {
