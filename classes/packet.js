@@ -175,7 +175,7 @@ class Packet {
             fields.get("beingHit") ?? "",
             fields.get("hp") ?? "",
             fields.get("spawnProt") ?? "",
-            fields.get("radius") ?? "",
+            fields.get("deathFrame") ?? "",
             "",
             fields.get("weapon") ?? "",
             fields.get("username") ?? "",
@@ -230,6 +230,13 @@ class Packet {
         let packet = [
             serverPackets.bulletExit,
             id
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    stats(gameStats) {
+        let packet = [
+
         ].join(",");
         this.data.packetList.push(packet);
     }

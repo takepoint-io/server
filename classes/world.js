@@ -498,6 +498,7 @@ class World {
         }
         else {
             player.radius--;
+            player.miscUpdates.set("deathFrame", 25 - player.radius);
             if (player.radius == 0) {
                 player.dying = false;
                 player.spawned = false;
@@ -508,6 +509,10 @@ class World {
     onPlayerDeath(player, killer) {
         player.inGame = false;
         player.dying = true;
+        player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
+
+        killer.kills++;
+        killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
     }
 
     getSpawnPoint(teamCode) {
