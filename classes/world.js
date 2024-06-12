@@ -112,6 +112,9 @@ class World {
                 }
                 continue;
             }
+            else if (player.registeredEvents.includes("despawned")) {
+                player.packet.playerExit(player.id);
+            }
             player.packet.playerUpdate(player);
             if (player.miscUpdates.size > 0) {
                 player.packet.playerMiscData(player);
@@ -197,6 +200,7 @@ class World {
                     if (point.neutralizedThisTick) {
                         for (let player of res) {
                             player.addScore(worldValues.scoreAwards.pointNeutrailzed * point.scoreMultiplier);
+                            player.stats.pointsNeutralized++;
                             player.packet.serverMessage(Packet.createServerMessage("pointNeutralized"));
                         }
                     } else if (point.capturedThisTick) {
@@ -207,6 +211,7 @@ class World {
                         ];
                         for (let player of res) {
                             player.addScore(worldValues.scoreAwards.pointTaken * point.scoreMultiplier);
+                            player.stats.pointsTaken++;
                             player.packet.serverMessage(Packet.createServerMessage("pointTaken"));
                         }
                     }
@@ -502,6 +507,9 @@ class World {
             if (player.radius == 0) {
                 player.dying = false;
                 player.spawned = false;
+                player.stats.setTimeAlive();
+                player.stats.setAccuracy();
+                player.registeredEvents.push("despawned");
             }
         }
     }

@@ -234,9 +234,16 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
-    stats(gameStats) {
+    stats(player) {
         let packet = [
-
+            serverPackets.stats,
+            player.score,
+            player.level,
+            player.kills,
+            player.stats.timeAlive,
+            player.stats.accuracy,
+            player.stats.pointsNeutralized,
+            player.stats.pointsTaken
         ].join(",");
         this.data.packetList.push(packet);
     }

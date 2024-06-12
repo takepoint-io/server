@@ -150,6 +150,7 @@ class Player {
         this.shield = this.maxShield;
         this.accumulatedHealth = 0;
         this.level = 0;
+        this.resetGameStats();
         this.resetSkillPoints();
         this.resetUpgrades();
         this.resetWeapon();
@@ -160,6 +161,18 @@ class Player {
         if (tempScore > 0) this.addScore(Math.floor(tempScore / 4));
         this.kills = 0;
         this.spawnProt = 1;
+    }
+
+    resetGameStats() {
+        this.stats = {
+            spawnTime: Date.now(),
+            bulletsFired: 2,
+            bulletsHit: 1,
+            pointsNeutralized: 0,
+            pointsTaken: 0
+        };
+        this.stats.setTimeAlive = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;
+        this.stats.setAccuracy = () => this.stats.accuracy = (this.stats.bulletsHit / this.stats.bulletsFired).toFixed(2);
     }
 
     resetSkillPoints() {
