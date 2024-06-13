@@ -51,14 +51,11 @@ function nextTick() {
             data: {
                 region: serverConfig.region,
                 city: serverConfig.city,
-                game_type: serverConfig.game_type,
-                owner: serverConfig.owner,
-                label: serverConfig.label,
                 url: serverConfig.url || "localhost:" + serverPort,
                 players: world.players.size,
-                capacity: serverConfig.capacity,
-                short_id: serverConfig.short_id
-            }
+                capacity: serverConfig.capacity
+            },
+            override: serverConfig.override
         })
         .catch(error => {});
     }
