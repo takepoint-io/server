@@ -175,7 +175,7 @@ class Player {
                 return Math.floor(this.timeAlive / 40);
             },
             get accuracy() {
-                return this.bulletsFired == 0 ? "-" : (this.bulletsHit / this.bulletsFired).toFixed(2);
+                return this.bulletsFired == 0 ? "-" : (this.bulletsHit / this.bulletsFired * 100).toFixed(2);
             }
         };
         this.stats.setTimeAlive = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;

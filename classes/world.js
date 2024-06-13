@@ -201,7 +201,7 @@ class World {
         for (let point of this.points) {
             let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 50))
                 .map(p => this.players.get(p.data.id))
-                .filter(p => p.spawned && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius);
+                .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius);
             if (res.length) {
                 let statusChanged = point.update(res);
                 if (statusChanged) {
@@ -298,6 +298,7 @@ class World {
                 }
             }
             if (hits.length == 0) continue;
+            bullet.player.stats.bulletsHit++;
             bullet.shouldDespawn = true;
             let closest = { entity: null, dist: Infinity, pos: null };
             for (let i = 0; i < hits.length; i++) {
@@ -340,6 +341,7 @@ class World {
             if (player.inputs.mouse) {
                 let bullets = weapon.attemptFire();
                 if (bullets) {
+                    player.stats.bulletsFired += bullets.length;
                     player.miscUpdates.set("firing", weapon.firing); 
                     player.formUpdates.set("ammo", weapon.ammo);
                 }
