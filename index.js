@@ -42,7 +42,7 @@ const serverStats = {
 function nextTick() {
     world.evalTick();
 
-    if (Date.now() - serverStats.lastAPIUpdate > serverConfig.APIUpdateFreq || 10) {
+    if (Date.now() - serverStats.lastAPIUpdate > 10_000) {
         axios.post(`${APIUrl}/register_instance`, {
             auth: {
                 id: serverStats.id,
@@ -58,6 +58,7 @@ function nextTick() {
             override: serverConfig.override
         })
         .catch(error => {});
+        serverStats.lastAPIUpdate = Date.now();
     }
 }
 
