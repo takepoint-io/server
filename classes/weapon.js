@@ -187,7 +187,7 @@ class Weapon {
             case weapons.sniper:
                 return 20;
             case weapons.shotgun:
-                return 9;
+                return 10;
         }
     }
 }
