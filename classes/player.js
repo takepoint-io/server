@@ -200,7 +200,8 @@ class Player {
         this.perkID = null;
         this.perkUpgradeAvailable = 0;
         this.perkUpgradeSelected = 0;
-        this.perkCooldown = 0;
+        this.maxCooldown = 0;
+        this.currentCooldown = 0;
     }
 
     resetWeapon() {
@@ -233,6 +234,7 @@ class Player {
         this.playerPool = new Map();
         this.objectPool = new Map();
         this.bulletPool = new Map();
+        this.throwablePool = new Map();
     }
 
     sendUpdate(packet) {

@@ -2,11 +2,19 @@ const { QuadTree, Box, Circle } = require('js-quadtree');
 const Packet = require('./packet');
 const Point = require('./point');
 const Bullet = require('./bullet');
+const Obj = require('./objects/obj');
+const Throwable = require('./throwable/throwable');
 const Team = require('./team');
-const Perks = [
-    'barrier',
-    'health'
-].map(e => require('./objects/' + e));
+const PerkList = [
+    'objects/barrier',
+    'objects/health',
+    'throwable/gas'
+].map(e => require('./' + e));
+const Perks = { 
+    Barrier: PerkList[0],
+    Health: PerkList[1],
+    Gas: PerkList[2]
+};
 const Util = require('./util');
 const { worldValues } = require('../data/values.json');
 
@@ -24,7 +32,8 @@ class World {
         this.players = players;
         this.guestNames = worldValues.guestNames.map(name => this.initGuestName(name));
         this.tickCount = 0;
-        this.tree = new QuadTree(new Box(-4250, -4250, 8500, 8500), { 
+        this.tree = new QuadTree(new Box(-4250, -4250, 8500, 8500), {
+            maximumDepth: 5,
             arePointsEqual: (point1, point2) => point1.data.type == point2.data.type && point1.data.id == point2.data.id
         });
     }
@@ -71,18 +80,16 @@ class World {
     }
 
     tick() {
+        this.updateBullets();
+        this.updateWeapons();
         this.runCollisions();
         for (let [_playerID, player] of this.players) {
             this.updatePlayerPosition(player);
-            if (player.spawned) {
-                this.updatePlayerVelocity(player);
-                this.updatePlayerHealth(player);
-            }
+            if (player.inGame) this.updatePlayerVelocity(player);
+            if (player.spawned) this.updatePlayerHealth(player);
         }
         this.updatePoints();
         this.updatePerks();
-        this.updateBullets();
-        this.updateWeapons();
         this.updateQuadtree();
         //update each player's viewbox
         for (let [_playerID, player] of this.players) {
@@ -113,7 +120,7 @@ class World {
                 continue;
             }
             else if (player.registeredEvents.includes("despawned")) {
-                player.spawnTimeout = 50;
+                player.spawnTimeout = 3 * 25;
                 player.informedOfRespawn = false;
                 player.packet.playerExit(player.id);
                 player.stats.setTimeAlive();
@@ -129,6 +136,7 @@ class World {
             player.weapon.postTick();
             player.registeredEvents = [];
             player.collisions = [];
+            player.collidingWithObject = false;
             player.miscUpdates.clear();
             player.formUpdates.clear();
             if (player.spawnTimeout > 0) player.spawnTimeout--;
@@ -136,6 +144,9 @@ class World {
                 player.packet.respawnButtonAvailable();
                 player.informedOfRespawn = true;
             }
+        }
+        for (let [_objectID, object] of Obj.objects) {
+            object.updatedThisTick = false;
         }
         for (let point of this.points) {
             point.postTick();
@@ -148,8 +159,14 @@ class World {
             if (!player.spawned) continue;
             this.addCircleToTree(player);
         }
+        for (let [_objectID, object] of Obj.objects) {
+            this.addCircleToTree(object);
+        }
         for (let [_bulletID, bullet] of Bullet.bullets) {
             this.addEntityToTree(bullet);
+        }
+        for (let [_throwableID, throwable] of Throwable.throwables) {
+            this.addEntityToTree(throwable);
         }
     }
 
@@ -199,9 +216,9 @@ class World {
 
     updatePoints() {
         for (let point of this.points) {
-            let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 50))
+            let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 100))
                 .map(p => this.players.get(p.data.id))
-                .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius);
+                .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius * 2);
             if (res.length) {
                 let statusChanged = point.update(res);
                 if (statusChanged) {
@@ -268,6 +285,36 @@ class World {
                 }
             }
         }
+        //player-object collisions
+        for (let [_objectID, object] of Obj.objects) {
+            let nearbyEntities = this.tree.query(new Circle(object.x, object.y, 100));
+            let nearbyPlayers = nearbyEntities.filter(e => e.data.type == 0);
+            for (let i = 0; i < nearbyPlayers.length; i++) {
+                let checkingPlayer = this.players.get(nearbyPlayers[i].data.id);
+                if (checkingPlayer && checkingPlayer.inGame) {
+                    let distX = checkingPlayer.x - object.x;
+                    let distY = checkingPlayer.y - object.y;
+                    let distance = Math.sqrt((distX) ** 2 + (distY) ** 2);
+                    if (distance < object.radius + checkingPlayer.radius) {
+                        if (object.objectType == 0) {
+                            if (checkingPlayer.health < checkingPlayer.maxHealth) {
+                                checkingPlayer.health = Util.clamp(checkingPlayer.health + object.healingAmount, 0, checkingPlayer.maxHealth);
+                                checkingPlayer.miscUpdates.set("hp", checkingPlayer.health);
+                                object.despawn();
+                            }
+                        }
+                        else if (object.objectType == 1 && !checkingPlayer.collidingWithObject) {
+                            let angleToObject = Util.toRadians(Util.angle(distX, distY));
+                            checkingPlayer.x += Math.cos(angleToObject)
+                            checkingPlayer.y += Math.sin(angleToObject);
+                            checkingPlayer.spdX = 0;
+                            checkingPlayer.spdY = 0;
+                            checkingPlayer.collidingWithObject = true;
+                        }
+                    }
+                }
+            }
+        }
         //bullet-entity collisions
         for (let [_bulletID, bullet] of Bullet.bullets) {
             let nearbyEntities = this.tree.query(new Circle(bullet.x, bullet.y, 50));
@@ -285,10 +332,16 @@ class World {
                         y: player.y + player.spdY
                     };
                     entity = player;
-                } else if (entity.type == 1) {
-                    //TODO: add other entities
+                } else if (entityType == 1) {
+                    let object = Obj.objects.get(entityID);
+                    if (!object || object.objectType != 1) continue;
+                    object.testPosition = {
+                        x: object.x,
+                        y: object.y
+                    };
+                    entity = object;
                 }
-                if (entity.teamCode != bullet.teamCode) {
+                if (entityType != 0 || entity.teamCode != bullet.teamCode) {
                     let segment = {
                         p1: { x: bullet.x, y: bullet.y },
                         p2: { x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y }
@@ -299,7 +352,7 @@ class World {
             }
             if (hits.length == 0) continue;
             bullet.player.stats.bulletsHit++;
-            bullet.shouldDespawn = true;
+            bullet.despawn();
             let closest = { entity: null, dist: Infinity, pos: null };
             for (let i = 0; i < hits.length; i++) {
                 let dist = Util.distance(hits[i].entity.testPosition, bullet.spawnedAt);
@@ -328,9 +381,18 @@ class World {
                         if (delta > 0) bullet.player.addScore(delta);
                         if (player.health == 0) this.onPlayerDeath(player, bullet.player);
                     }
-                    bullet.player.packet.hitMarker(closest.pos);
+                    break;
+                case 1:
+                    let object = closest.entity;
+                    object.health = Util.clamp(object.health - bullet.dmg, 0, object.maxHealth);
+                    if (object.health == 0) object.despawn();
+                    object.updatedThisTick = true;
                     break;
             }
+            //if the hitmarker is inside the circle then we use that otherwise we move it to the first endpoint
+            let distance = Util.distance({ x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y }, closest.entity);
+            if (distance < closest.entity.radius) bullet.player.packet.hitMarker({ x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y });
+            else bullet.player.packet.hitMarker(closest.pos);
         }
     }
 
@@ -364,7 +426,39 @@ class World {
     updatePerks() {
         for (let [_playerID, player] of this.players) {
             if (!player.inGame || !player.perkUpgradeSelected) continue;
-            if (player.perkCooldown > 0) player.perkCooldown--;
+            if (player.inputs.space && player.currentCooldown == 0) {
+                switch (player.perkID) {
+                    case 1: {
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + worldValues.perks.barrier.radius + 10);
+                        new Perks.Barrier(spawnPoint.x, spawnPoint.y);
+                        player.maxCooldown = Perks.Barrier.cooldown;
+                        break;
+                    }
+                    case 2: {
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + worldValues.perks.health.radius + 10);
+                        new Perks.Health(spawnPoint.x, spawnPoint.y);
+                        player.maxCooldown = Perks.Health.cooldown;
+                        break;
+                    }
+                    case 3: {
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + 10);
+                        new Perks.Gas(spawnPoint.x, spawnPoint.y, player.angle, player);
+                        player.maxCooldown = Perks.Gas.cooldown;
+                        break;
+                    }
+                }
+                player.currentCooldown = player.maxCooldown;
+            }
+            if (player.currentCooldown > 0) {
+                player.currentCooldown--;
+                player.formUpdates.set("perkCooldown", Math.round(player.currentCooldown / player.maxCooldown * 100));
+            }
+        }
+        for (let [_objectID, object] of Obj.objects) {
+            object.tick();
+        }
+        for (let [_throwableID, throwable] of Throwable.throwables) {
+            throwable.tick();
         }
     }
 
@@ -377,7 +471,9 @@ class World {
     updateView(player) {
         let viewbox = this.queryPlayerView(player);
         let playersChecked = {};
+        let objectsChecked = {};
         let bulletsChecked = {};
+        let throwablesChecked = {};
         for (let i = 0; i < viewbox.length; i++) {
             let entity = viewbox[i];
             switch (entity.data.type) {
@@ -394,6 +490,19 @@ class World {
                     player.packet.playerUpdate(playerTwo);
                     playersChecked[playerTwo.id] = true;
                     break;
+
+                case 1:
+                    let object = Obj.objects.get(entity.data.id);
+                    if (!player.objectPool.has(object.id)) {
+                        player.objectPool.set(object.id, object);
+                        player.packet.objectJoin(object);
+                    }
+                    if (object.updatedThisTick) {
+                        player.packet.objectUpdate(object);
+                    }
+                    objectsChecked[object.id] = true;
+                    break;
+
                 case 2:
                     let bullet = Bullet.bullets.get(entity.data.id);
                     if (!player.bulletPool.has(bullet.id)) {
@@ -403,6 +512,17 @@ class World {
                     player.packet.bulletUpdate(bullet);
                     bulletsChecked[bullet.id] = true;
                     break;
+
+                case 3:
+                    let throwable = Throwable.throwables.get(entity.data.id);
+                    if (!player.throwablePool.has(throwable.id)) {
+                        player.throwablePool.set(throwable.id, throwable);
+                        player.packet.throwableJoin(throwable);
+                    }
+                    player.packet.throwableUpdate(throwable);
+                    throwablesChecked[throwable.id] = true;
+                    break;
+
                 default:
                     break;
             }
@@ -414,10 +534,22 @@ class World {
                 player.playerPool.delete(_playerID)
             }
         }
+        for (let [_objectID, object] of player.objectPool) {
+            if (!objectsChecked[_objectID]) {
+                player.packet.objectExit(_objectID);
+                player.objectPool.delete(_objectID);
+            }
+        }
         for (let [_bulletID, bullet] of player.bulletPool) {
             if (!bulletsChecked[_bulletID]) {
                 player.packet.bulletExit(_bulletID);
                 player.bulletPool.delete(_bulletID);
+            }
+        }
+        for (let [_throwableID, throwable] of player.throwablePool) {
+            if (!throwablesChecked[_throwableID]) {
+                player.packet.throwableExit(_throwableID);
+                player.throwablePool.delete(_throwableID);
             }
         }
     }
@@ -480,11 +612,13 @@ class World {
             else player.spdY -= resistY;
         }
 
-        //Update velocity based on player input
-        if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
-        if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
-        if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
-        if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
+        //Update velocity based on player input if not colliding
+        if (!player.collidingWithObject) {
+            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
+            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
+            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
+            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
+        }
 
         /*if (player.numInputs > 1) {
             let maxSpeedDiagonal = player.maxSpeed * Math.SQRT1_2;
@@ -526,6 +660,8 @@ class World {
     onPlayerDeath(player, killer) {
         player.inGame = false;
         player.dying = true;
+        player.spdX = 0;
+        player.spdY = 0;
         player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
 
         killer.kills++;
@@ -692,11 +828,11 @@ class World {
     }
 
     handlePerkUpgrade(player, perkID) {
-        if (!player.inGame || !player.perkUpgradeAvailable || perkID < 1 || perkID > Perks.length) return; 
+        if (!player.inGame || !player.perkUpgradeAvailable || perkID < 1 || perkID > PerkList.length) return; 
         player.perkID = perkID;
         player.perkUpgradeSelected = 1;
         player.perkUpgradeAvailable = 0;
-        player.perkCooldown = 0;
+        player.currentCooldown = 0;
         player.formUpdates.set("perkChosen", player.perkID);
         player.formUpdates.set("perkUpgradeAvailable", player.perkUpgradeAvailable);
     }
