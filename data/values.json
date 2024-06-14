@@ -51,19 +51,28 @@
             "barrier": {
                 "radius": 35,
                 "lifespan": 7200,
-                "cooldown": 30,
+                "cooldown": 15,
                 "maxHealth": 250
             },
             "health": {
                 "radius": 20,
-                "lifespan": 10,
-                "cooldown": 15,
+                "lifespan": 30,
+                "cooldown": 10,
                 "healingAmount": 50
+            },
+            "gas": {
+                "lifespan": 14,
+                "cooldown": 7,
+                "travelSpeed": 12,
+                "travelTicks": 35,
+                "expansionSpeed": 4,
+                "maxRadius": 150
             }
         },
         "maxEntities": {
             "objects": 1999,
-            "bullets": 999
+            "bullets": 999,
+            "throwables": 999
         },
         "guestNames": [
             "Achilles","Alula","Alya","Andromeda",

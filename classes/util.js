@@ -31,6 +31,13 @@ class Util {
         return Math.sqrt(c ** 2 - a ** 2);
     }
 
+    static circlePoint(angle, center, radius) {
+        return {
+            x: Math.round(center.x + radius * Math.cos(this.toRadians(angle))),
+            y: Math.round(center.y + radius * Math.sin(this.toRadians(angle)))
+        };
+    }
+
     static circleLineSegmentIntersect(circle, lineSegment, radius) {
         //assume circle is at (0, 0) relative to linesegment
         let dx = lineSegment.p2.x - lineSegment.p1.x;
