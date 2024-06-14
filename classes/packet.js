@@ -50,7 +50,7 @@ class Packet {
             serverPackets.pointUpdate,
             point.id,
             point.percentCaptured.toFixed(2),
-            point.capturedThisTick ? point.owner : ""
+            point.capturedThisTick || point.recapturedThisTick ? point.owner : ""
         ].join(",");
         this.data.packetList.push(packet);
     }

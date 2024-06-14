@@ -8,6 +8,7 @@ class Point {
         this.capturer = 3;
         this.capturedThisTick = false;
         this.neutralizedThisTick = false;
+        this.recapturedThisTick = false;
         this.ticks = 0;
         this.ticksToCap = points.ticksToCap;
         this.id = id;
@@ -45,6 +46,7 @@ class Point {
             else {
                 if (this.ticks == this.ticksToCap) return false;
                 this.ticks = Math.min(this.ticks + numCapturing, this.ticksToCap);
+                if (this.ticks == this.ticksToCap) this.recapturedThisTick = true;
             }
             return true;
         }
@@ -54,6 +56,7 @@ class Point {
     postTick() {
         this.capturedThisTick = false;
         this.neutralizedThisTick = false;
+        this.recapturedThisTick = false;
     }
 
     get percentCaptured() {
