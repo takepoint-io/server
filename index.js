@@ -40,7 +40,11 @@ const serverStats = {
 };
 
 function nextTick() {
-    world.evalTick();
+    try {
+        world.evalTick();
+    } catch (e) {
+        console.log(e);
+    }
 
     if (Date.now() - serverStats.lastAPIUpdate > 10_000) {
         axios.post(`${APIUrl}/register_instance`, {
@@ -69,7 +73,7 @@ const gameLoop = function() {
         const delta = now - lastTick;
         if (delta >= serverValues.tickLength * 1.1 && now - serverStats.lastWarning > 15 * 1000) {
             console.log(`Ticks are taking more than 10% longer than expected! Last tick took ${delta}ms`);
-            serverValues.lastWarning = Date.now();
+            serverStats.lastWarning = Date.now();
         }
         lastTick = now;
         nextTick();
