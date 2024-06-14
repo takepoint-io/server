@@ -1,7 +1,7 @@
 # Setup
 This project requires Node.js and npm to run.<br>
 Clone the repo and run `npm install`. Then, make sure to create a `config.json` in the project root as follows:
-```json
+```js
 {
     "dev": <boolean || false>,
     "port": <int || 8000>,
