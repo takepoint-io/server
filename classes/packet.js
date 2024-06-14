@@ -202,6 +202,39 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    objectJoin(object) {
+        let packet = [
+            serverPackets.objectJoin,
+            object.id,
+            object.objectType,
+            object.x,
+            object.y,
+            object.radius,
+            object.health,
+            object.maxHealth,
+            object.teamCode
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+    
+    objectUpdate(object) {
+        let packet = [
+            serverPackets.objectUpdate,
+            object.id,
+            object.health,
+            object.angle ?? ""
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    objectExit(id) {
+        let packet = [
+            serverPackets.objectExit,
+            id
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     bulletJoin(bullet) {
         let packet = [
             serverPackets.bulletJoin,
@@ -229,6 +262,43 @@ class Packet {
     bulletExit(id) {
         let packet = [
             serverPackets.bulletExit,
+            id
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    throwableJoin(throwable) {
+        let packet = [
+            serverPackets.throwableJoin,
+            throwable.id,
+            throwable.throwableType,
+            throwable.x,
+            throwable.y,
+            throwable.angle,
+            throwable.velocity.x,
+            throwable.velocity.y
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    throwableUpdate(throwable) {
+        let packet = [
+            serverPackets.throwableUpdate,
+            throwable.id,
+            throwable.x,
+            throwable.y,
+            throwable.angle,
+            throwable.velocity.x,
+            throwable.velocity.y,
+            throwable.detonated || "",
+            throwable.radius
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
+    throwableExit(id) {
+        let packet = [
+            serverPackets.throwableExit,
             id
         ].join(",");
         this.data.packetList.push(packet);
