@@ -218,7 +218,7 @@ class World {
         for (let point of this.points) {
             let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 100))
                 .map(p => this.players.get(p.data.id))
-                .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius * 2);
+                .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius * 1.8);
             if (res.length) {
                 let statusChanged = point.update(res);
                 if (statusChanged) {
@@ -294,7 +294,7 @@ class World {
                 if (checkingPlayer && checkingPlayer.inGame) {
                     let distX = checkingPlayer.x - object.x;
                     let distY = checkingPlayer.y - object.y;
-                    let distance = Math.sqrt((distX) ** 2 + (distY) ** 2);
+                    let distance = Util.hypot(distX, distY);
                     if (distance < object.radius + checkingPlayer.radius) {
                         if (object.objectType == 0) {
                             if (checkingPlayer.health < checkingPlayer.maxHealth) {
@@ -393,6 +393,25 @@ class World {
             let distance = Util.distance({ x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y }, closest.entity);
             if (distance < closest.entity.radius) bullet.player.packet.hitMarker({ x: bullet.x + bullet.velocity.x, y: bullet.y + bullet.velocity.y });
             else bullet.player.packet.hitMarker(closest.pos);
+        }
+        //throwable-player collisions
+        for (let [_throwableID, throwable] of Throwable.throwables) {
+            if (throwable.throwableType != 0 || !throwable.detonated) continue;
+            let gasGrenade = throwable;
+            let nearbyEntities = this.tree.query(new Circle(gasGrenade.x, gasGrenade.y, gasGrenade.radius + 100));
+            let nearbyPlayers = nearbyEntities.filter(e => e.data.type == 0);
+            for (let i = 0; i < nearbyPlayers.length; i++) {
+                let checkingPlayer = this.players.get(nearbyPlayers[i].data.id);
+                if (checkingPlayer && checkingPlayer.inGame) {
+                    let distance = Util.distance(gasGrenade, checkingPlayer);
+                    if (distance < gasGrenade.radius + checkingPlayer.radius) {
+                        checkingPlayer.accumulatedHealth -= Perks.Gas.dmg;
+                        checkingPlayer.beingHit = 1;
+                        checkingPlayer.miscUpdates.set("beingHit", checkingPlayer.beingHit);
+                        if (checkingPlayer.health == 0) this.onPlayerDeath(checkingPlayer, gasGrenade.player);
+                    }
+                }
+            }
         }
     }
 
@@ -641,7 +660,7 @@ class World {
         if (!player.dying) {
             let healedThisTick = 0.04 + 0.02 * player.upgrades.regen;
             player.accumulatedHealth += healedThisTick;
-            if (player.accumulatedHealth < 1) return;
+            if (Math.abs(player.accumulatedHealth) < 1) return;
             player.health = Util.clamp(player.health + Math.floor(player.accumulatedHealth), 0, player.maxHealth);
             player.accumulatedHealth -= Math.floor(player.accumulatedHealth);
             player.miscUpdates.set("hp", player.health);

@@ -9,6 +9,7 @@ class Throwable {
         this.type = 3;
         this.throwableType = type;
         this.createdAt = Date.now();
+        this.player = player;
         this.travelTime = 0;
         this.detonateAt = detonateAt;
         this.timeToLive = timeToLive;
