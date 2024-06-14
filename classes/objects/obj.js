@@ -3,7 +3,7 @@ const { worldValues } = require('../../data/values.json');
 class Obj {
     static objectIDs = new Array(worldValues.maxEntities.objects).fill(null).map((e, i) => i + 1);
     static objects = new Map();
-    constructor(type, x, y, radius, maxHealth, teamCode, timeToLive) {
+    constructor(type, x, y, radius, maxHealth = 0, teamCode = 3, timeToLive) {
         this.id = Obj.getObjectID();
         this.type = 1;
         this.objectType = type;
@@ -12,18 +12,23 @@ class Obj {
         this.x = x;
         this.y = y;
         this.radius = radius;
-        this.maxHealth = maxHealth || 0;
+        this.maxHealth = maxHealth;
         this.health = this.maxHealth;
-        this.teamCode = teamCode || 0;
+        this.teamCode = teamCode;
+        this.angle = 0;
+        this.updatedThisTick = false;
+        Obj.objects.set(this.id, this);
     }
 
     tick() {
         if (this.timeToLive <= 0) this.shouldDespawn = true;
-        if (this.shouldDespawn) {
-            Obj.objects.delete(this.id);
-            Obj.returnObjectID(this.id);
-        }
+        if (this.shouldDespawn) this.despawn();
         this.timeToLive--;
+    }
+
+    despawn() {
+        Obj.objects.delete(this.id);
+        Obj.returnObjectID(this.id);
     }
 
     static getObjectID() {
