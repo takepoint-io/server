@@ -626,22 +626,22 @@ class World {
             { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
             { x: 0.5, y: 0.5};
         if (player.inputs.left == player.inputs.right) {
-            let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 10;
+            let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
             if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
             else player.spdX -= resistX;
         }
         if (player.inputs.up == player.inputs.down) {
-            let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 10;
+            let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
             if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
             else player.spdY -= resistY;
         }
 
         //Update velocity based on player input if not colliding
         if (!player.collidingWithObject) {
-            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 10;
-            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 10;
-            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 10;
-            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 10;
+            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
+            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
+            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
+            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
         }
 
         /*if (player.numInputs > 1) {
