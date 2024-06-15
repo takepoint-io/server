@@ -51,7 +51,7 @@
             "barrier": {
                 "radius": 35,
                 "lifespan": 7200,
-                "cooldown": 15,
+                "cooldown": 10,
                 "maxHealth": 250
             },
             "health": {
@@ -62,12 +62,23 @@
             },
             "gas": {
                 "lifespan": 14,
-                "cooldown": 7,
+                "cooldown": 2,
                 "travelSpeed": 12,
                 "travelTicks": 35,
                 "expansionSpeed": 4,
-                "maxRadius": 150,
+                "maxRadius": 160,
                 "damage": 0.5
+            },
+            "frag": {
+                "lifespan": 2,
+                "cooldown": 15,
+                "travelSpeed": 15,
+                "travelTicks": 35,
+                "explosionRadius": 100,
+                "damage": 50,
+                "damageDrop": 20,
+                "pieces": 18,
+                "shrapnelDamage": 10
             }
         },
         "maxEntities": {

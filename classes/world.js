@@ -8,12 +8,14 @@ const Team = require('./team');
 const PerkList = [
     'objects/barrier',
     'objects/health',
-    'throwable/gas'
+    'throwable/gas',
+    'throwable/frag'
 ].map(e => require('./' + e));
 const Perks = { 
     Barrier: PerkList[0],
     Health: PerkList[1],
-    Gas: PerkList[2]
+    Gas: PerkList[2],
+    Frag: PerkList[3]
 };
 const Util = require('./util');
 const { worldValues } = require('../data/values.json');
@@ -367,20 +369,8 @@ class World {
             switch (closest.entity.type) {
                 case 0:
                     let player = closest.entity;
-                    if (player.shield > 0) {
-                        player.shield = Util.clamp(player.shield - bullet.dmg, 0, player.maxShield);
-                        player.miscUpdates.set("shield", player.shield);
-                    }
-                    if (player.shield == 0) {
-                        let tmpHealth = player.health;
-                        player.health = Util.clamp(player.health - bullet.dmg, 0, player.maxHealth);
-                        player.miscUpdates.set("hp", player.health);
-                        player.beingHit = 1;
-                        player.miscUpdates.set("beingHit", player.beingHit);
-                        let delta = tmpHealth - player.health;
-                        if (delta > 0) bullet.player.addScore(delta);
-                        if (player.health == 0) this.onPlayerDeath(player, bullet.player);
-                    }
+                    let res = player.takeDamage(bullet.dmg, bullet.player);
+                    if (res) this.onPlayerDeath(player, bullet.player);
                     break;
                 case 1:
                     let object = closest.entity;
@@ -396,19 +386,28 @@ class World {
         }
         //throwable-player collisions
         for (let [_throwableID, throwable] of Throwable.throwables) {
-            if (throwable.throwableType != 0 || !throwable.detonated) continue;
-            let gasGrenade = throwable;
-            let nearbyEntities = this.tree.query(new Circle(gasGrenade.x, gasGrenade.y, gasGrenade.radius + 100));
+            if (!throwable.detonated) continue;
+            let nearbyEntities = this.tree.query(new Circle(throwable.x, throwable.y, throwable.radius + 100));
             let nearbyPlayers = nearbyEntities.filter(e => e.data.type == 0);
             for (let i = 0; i < nearbyPlayers.length; i++) {
                 let checkingPlayer = this.players.get(nearbyPlayers[i].data.id);
-                if (checkingPlayer && checkingPlayer.inGame) {
-                    let distance = Util.distance(gasGrenade, checkingPlayer);
-                    if (distance < gasGrenade.radius + checkingPlayer.radius) {
-                        checkingPlayer.accumulatedHealth -= Perks.Gas.dmg;
-                        checkingPlayer.beingHit = 1;
-                        checkingPlayer.miscUpdates.set("beingHit", checkingPlayer.beingHit);
-                        if (checkingPlayer.health == 0) this.onPlayerDeath(checkingPlayer, gasGrenade.player);
+                if (checkingPlayer && checkingPlayer.inGame && !checkingPlayer.spawnProt) {
+                    let distance = Util.distance(throwable, checkingPlayer);
+                    if (distance < throwable.radius + checkingPlayer.radius) {
+                        switch (throwable.throwableType) {
+                            case 0:
+                                checkingPlayer.accumulatedHealth -= Perks.Gas.dmg;
+                                if (checkingPlayer.accumulatedHealth < 0) {
+                                    checkingPlayer.takeDamage(Math.ceil(checkingPlayer.accumulatedHealth), throwable.player, false)
+                                    checkingPlayer.accumulatedHealth += Math.ceil(checkingPlayer.accumulatedHealth);
+                                }
+                                checkingPlayer.beingHit = 1;
+                                checkingPlayer.miscUpdates.set("beingHit", checkingPlayer.beingHit);
+                                if (checkingPlayer.health == 0) this.onPlayerDeath(checkingPlayer, throwable.player);
+                                break;
+                            case 1:
+                                break;
+                        }
                     }
                 }
             }
@@ -464,6 +463,12 @@ class World {
                         new Perks.Gas(spawnPoint.x, spawnPoint.y, player.angle, player);
                         player.maxCooldown = Perks.Gas.cooldown;
                         break;
+                    }
+                    case 4: {
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + 10);
+                        new Perks.Frag(spawnPoint.x, spawnPoint.y, player.angle, player);
+                        player.maxCooldown = Perks.Frag.cooldown;
+                        break
                     }
                 }
                 player.currentCooldown = player.maxCooldown;
@@ -621,22 +626,22 @@ class World {
             { x: Math.abs(player.spdX) / player.maxSpeed, y: Math.abs(player.spdY) / player.maxSpeed } :
             { x: 0.5, y: 0.5};
         if (player.inputs.left == player.inputs.right) {
-            let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 8;
+            let resistX = coefficients.x * Math.sign(player.spdX) * player.maxSpeed / 10;
             if (Math.abs(resistX) > Math.abs(player.spdX)) player.spdX = 0;
             else player.spdX -= resistX;
         }
         if (player.inputs.up == player.inputs.down) {
-            let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 8;
+            let resistY = coefficients.y * Math.sign(player.spdY) * player.maxSpeed / 10;
             if (Math.abs(resistY) > Math.abs(player.spdY)) player.spdY = 0;
             else player.spdY -= resistY;
         }
 
         //Update velocity based on player input if not colliding
         if (!player.collidingWithObject) {
-            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
-            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
-            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
-            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
+            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 10;
+            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 10;
+            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 10;
+            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 10;
         }
 
         /*if (player.numInputs > 1) {

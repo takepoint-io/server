@@ -13,8 +13,13 @@ class Throwable {
         this.travelTime = 0;
         this.detonateAt = detonateAt;
         this.timeToLive = timeToLive;
-        this.x = x;
-        this.y = y;
+        if (Util.hypot(x, y) > 4250) {
+            this.x = 0;
+            this.y = 0
+        } else {
+            this.x = x;
+            this.y = y;
+        }
         this.velocity = {
             x: Math.floor(Math.cos(Util.toRadians(angle)) * travelSpeed + player.spdX / 2) || 0,
             y: Math.floor(Math.sin(Util.toRadians(angle)) * travelSpeed + player.spdY / 2) || 0
@@ -32,10 +37,12 @@ class Throwable {
         if (this.travelTime < this.detonateAt) {
             this.x += this.velocity.x;
             this.y += this.velocity.y;
-            this.angle = (this.angle + Math.floor((2 - this.travelTime / this.detonateAt) * Util.hypot(this.velocity.x, this.velocity.y))) % 360;
+            this.angle = (this.angle + Math.floor((1 - this.travelTime / this.detonateAt) * Util.hypot(this.velocity.x, this.velocity.y))) % 360;
             this.travelTime++;
         }
-        else if (this.travelTime == this.detonateAt) this.detonated = 1;
+        else if (this.travelTime == this.detonateAt && !this.detonated) {
+            this.detonated = 1;
+        }
         this.timeToLive--;
     }
 

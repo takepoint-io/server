@@ -1,3 +1,4 @@
+const Util = require('../util');
 const { worldValues } = require('../../data/values.json');
 
 class Obj {
@@ -9,8 +10,13 @@ class Obj {
         this.objectType = type;
         this.createdAt = Date.now();
         this.timeToLive = timeToLive || 0;
-        this.x = x;
-        this.y = y;
+        if (Util.hypot(x, y) > 4250) {
+            this.x = 0;
+            this.y = 0
+        } else {
+            this.x = x;
+            this.y = y;
+        }
         this.radius = radius;
         this.maxHealth = maxHealth;
         this.health = this.maxHealth;
