@@ -73,6 +73,10 @@ class World {
                             player.packet.playersOnline(this.players.size);
                         }
                         break;
+                    case "disconnnected":
+                        this.removeFromTree(player);
+                        player.spawned = false;
+                        break;
                     case "afk":
                         player.packet.serverMessage(Packet.createServerMessage("afk", 60 * 25));
                         break;
@@ -115,7 +119,6 @@ class World {
         for (let [_playerID, player] of this.players) {
             if (player.registeredEvents.includes("disconnected")) {
                 this.players.delete(player.id);
-                this.removeFromTree(player);
                 for (let [_playerID, player] of this.players) {
                     player.packet.playersOnline(this.players.size);
                 }
@@ -173,7 +176,7 @@ class World {
     }
 
     queryPlayers(query) {
-        return this.tree.query(query).filter(e => e.data.type == 0);
+        return this.tree.query(query).filter(e => e.data.type == 0 && this.players.has(e.data.id));
     }
 
     queryPlayerView(player) {
