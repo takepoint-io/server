@@ -138,6 +138,23 @@ class Player {
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }
 
+    takeDamage(amount, from, scorable = true) {
+        if (this.shield > 0) {
+            this.shield = Util.clamp(this.shield - amount, 0, this.maxShield);
+            this.miscUpdates.set("shield", this.shield);
+        }
+        if (this.shield == 0) {
+            let tmpHealth = this.health;
+            this.health = Util.clamp(this.health - amount, 0, this.maxHealth);
+            this.miscUpdates.set("hp", this.health);
+            this.beingHit = 1;
+            this.miscUpdates.set("beingHit", this.beingHit);
+            let delta = tmpHealth - this.health;
+            if (delta > 0 && scorable) from.addScore(delta);
+            if (this.health == 0) return true;
+        }
+    }
+
     respawn(world) {
         this.inGame = true;
         this.spawned = true;
