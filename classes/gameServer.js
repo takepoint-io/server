@@ -8,7 +8,7 @@ class GameServer extends EventEmitter {
     #limits = {
         pingSocketTTL: 12_000,
         playerIdle: 120_000,
-        packetsPerTick: 50
+        packetsPerTick: 100
     }
     constructor(port, capacity) {
         super();

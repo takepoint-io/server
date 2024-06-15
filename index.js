@@ -36,14 +36,20 @@ gameServer.on("playerLeave", player => {
 const serverStats = {
     lastWarning: 0,
     lastAPIUpdate: 0,
-    id: Math.floor(Math.random() * 9000) + 1000
+    id: Math.floor(Math.random() * 9000) + 1000,
+    consecutiveFails: 0
 };
 
 function nextTick() {
     try {
         world.evalTick();
+        serverStats.consecutiveFails = 0;
     } catch (e) {
         console.log(e);
+        serverStats.consecutiveFails++;
+        if (serverStats.consecutiveFails > 10) {
+            process.exit(0);
+        }
     }
 
     if (Date.now() - serverStats.lastAPIUpdate > 10_000) {
