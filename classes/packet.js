@@ -66,7 +66,7 @@ class Packet {
     minimap(team) {
         let packet = [
             serverPackets.minimap,
-            [...team.values()].map(p => p.rX + ":" + p.rY)
+            [...team.values()].map(p => p.spawned ? p.rX + ":" + p.rY : "")
         ].join(",");
         this.data.packetList.push(packet);
     }
