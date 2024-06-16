@@ -22,3 +22,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ghcr.io/nitrogem35/takepoint-server-prod
+    - name: Push Docker image to repository
+      run: docker push ghcr.io/nitrogem35/takepoint-server-prod:latest
