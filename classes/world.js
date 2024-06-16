@@ -401,8 +401,9 @@ class World {
                             case 0:
                                 checkingPlayer.accumulatedHealth -= Perks.Gas.dmg;
                                 if (checkingPlayer.accumulatedHealth < 0) {
-                                    checkingPlayer.takeDamage(Math.ceil(checkingPlayer.accumulatedHealth), throwable.player, false)
-                                    checkingPlayer.accumulatedHealth += Math.ceil(checkingPlayer.accumulatedHealth);
+                                    let dmg = Math.abs(Math.ceil(checkingPlayer.accumulatedHealth));
+                                    checkingPlayer.takeDamage(dmg, throwable.player, false);
+                                    checkingPlayer.accumulatedHealth += dmg;
                                 }
                                 checkingPlayer.beingHit = 1;
                                 checkingPlayer.miscUpdates.set("beingHit", checkingPlayer.beingHit);
