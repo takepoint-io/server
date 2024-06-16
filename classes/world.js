@@ -694,8 +694,8 @@ class World {
 
     getSpawnPoint(teamCode) {
         let spawnPointData = {
-            offsetX: 0,
-            offsetY: 0, 
+            x: 0,
+            y: 0, 
             angle: Math.random() * Math.PI * 2
         };
         let ownedByTeam = Point.cappedByTeam(teamCode, this.points);
@@ -706,9 +706,9 @@ class World {
             while (true) {
                 let x = (2 * point.radius * Math.random()) - point.radius;
                 let y = (2 * point.radius * Math.random()) - point.radius;
-                if (x ** 2 + y ** 2 < Math.sqrt(point.radius)) {
-                    spawnPointData.offsetX = point.x + x;
-                    spawnPointData.offsetY = point.y + y;
+                if (x ** 2 + y ** 2 < point.radius ** 2) {
+                    spawnPointData.x = point.x + x;
+                    spawnPointData.y = point.y + y;
                     break;
                 }
             }
@@ -716,10 +716,10 @@ class World {
         else {
             //choose point on edge if the team controls no points
             spawnPointData.radius = this.devMode ? 100 : this.radius - 100;
+            spawnPointData.x = Math.cos(spawnPointData.angle) * spawnPointData.radius;
+            spawnPointData.y = Math.sin(spawnPointData.angle) * spawnPointData.radius;
         }
-        let x = Math.cos(spawnPointData.angle) * spawnPointData.radius + spawnPointData.offsetX;
-        let y = Math.sin(spawnPointData.angle) * spawnPointData.radius + spawnPointData.offsetY;
-        return [Math.floor(x), Math.floor(y)];
+        return [Math.floor(spawnPointData.x), Math.floor(spawnPointData.y)];
     }
 
     getTeam() {

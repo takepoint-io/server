@@ -62,7 +62,7 @@
             },
             "gas": {
                 "lifespan": 14,
-                "cooldown": 2,
+                "cooldown": 7,
                 "travelSpeed": 12,
                 "travelTicks": 35,
                 "expansionSpeed": 4,
