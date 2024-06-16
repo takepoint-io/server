@@ -115,6 +115,7 @@ class World {
         for (let [_playerID, player] of this.players) {
             if (player.registeredEvents.includes("disconnected")) {
                 this.players.delete(player.id);
+                this.guestNames.find(n => n.name == player.guestName).used = false;
                 for (let [_playerID, player] of this.players) {
                     player.packet.playersOnline(this.players.size);
                 }
