@@ -1,0 +1,9 @@
+{
+    "dev": false,
+    "port": 8000,
+    "override": false,
+    "region": "",
+    "city": "",
+    "url": "",
+    "capacity": 120
+}
