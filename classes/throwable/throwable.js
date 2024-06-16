@@ -26,7 +26,7 @@ class Throwable {
         };
         this.radius = 0;
         this.teamCode = teamCode;
-        this.detonated = 0;
+        this.detonating = 0;
         this.angle = angle;
         Throwable.throwables.set(this.id, this);
     }
@@ -40,9 +40,7 @@ class Throwable {
             this.angle = (this.angle + Math.floor((1 - this.travelTime / this.detonateAt) * Util.hypot(this.velocity.x, this.velocity.y))) % 360;
             this.travelTime++;
         }
-        else if (this.travelTime == this.detonateAt && !this.detonated) {
-            this.detonated = 1;
-        }
+        else this.detonating = 1;
         this.timeToLive--;
     }
 

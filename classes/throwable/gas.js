@@ -11,7 +11,8 @@ class Gas extends Throwable {
 
     tick() {
         super.tick();
-        if (this.detonated) {
+        if (this.detonating) {
+            if (!this.detonated) this.detonated = 1;
             this.radius = Util.clamp(this.radius + gas.expansionSpeed, 0, gas.maxRadius);
         }
     }

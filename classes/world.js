@@ -177,6 +177,10 @@ class World {
         return this.tree.query(query).filter(e => e.data.type == 0);
     }
 
+    queryObjects(query) {
+        return this.tree.query(query).filter(e => e.data.type == 1);
+    }
+
     queryPlayerView(player) {
         let vx = player.viewbox.x * 1.1;
         let vy = player.viewbox.y * 1.1;
@@ -375,9 +379,7 @@ class World {
                     break;
                 case 1:
                     let object = closest.entity;
-                    object.health = Util.clamp(object.health - bullet.dmg, 0, object.maxHealth);
-                    if (object.health == 0) object.despawn();
-                    object.updatedThisTick = true;
+                    object.takeDamage(bullet.dmg);
                     break;
             }
             //if the hitmarker is inside the circle then we use that otherwise we move it to the first endpoint
@@ -460,16 +462,14 @@ class World {
                         break;
                     }
                     case 3: {
-                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + 10);
-                        new Perks.Gas(spawnPoint.x, spawnPoint.y, player.angle, player);
+                        new Perks.Gas(player.x, player.y, player.angle, player);
                         player.maxCooldown = Perks.Gas.cooldown;
                         break;
                     }
                     case 4: {
-                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + 10);
-                        new Perks.Frag(spawnPoint.x, spawnPoint.y, player.angle, player);
+                        new Perks.Frag(player.x, player.y, player.angle, player, this);
                         player.maxCooldown = Perks.Frag.cooldown;
-                        break
+                        break;
                     }
                 }
                 player.currentCooldown = player.maxCooldown;
@@ -484,6 +484,25 @@ class World {
         }
         for (let [_throwableID, throwable] of Throwable.throwables) {
             throwable.tick();
+        }
+    }
+
+    createExplosion(x, y, radius, creator) {
+        let playersHit = this.queryPlayers(new Circle(x, y, radius + 100))
+            .map(p => this.players.get(p.data.id))
+            .filter(p => p.inGame && !p.spawnProt && Util.distance(p, {x,y}) < radius + p.radius);
+        for (let playerHit of playersHit) {
+            if (playerHit.teamCode == creator.teamCode) continue;
+            let dmg = Perks.Frag.dmg - Math.floor(Util.distance(playerHit, {x,y}) / Perks.Frag.dmgDrop);
+            let res = playerHit.takeDamage(dmg, creator);
+            if (res) this.onPlayerDeath(playerHit, creator);
+        }
+        let objectsHit = this.queryObjects(new Circle(x, y, radius + 100))
+            .map(o => Obj.objects.get(o.data.id))
+            .filter(o => o.objectType == 1 && Util.distance(o, {x,y}) < radius + o.radius);
+        for (let objectHit of objectsHit) {
+            let dmg = Perks.Frag.dmg - Math.floor(Util.distance(objectHit, {x,y}) / Perks.Frag.dmgDrop);
+            objectHit.takeDamage(dmg);
         }
     }
 

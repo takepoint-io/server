@@ -74,17 +74,23 @@
                 "cooldown": 15,
                 "travelSpeed": 15,
                 "travelTicks": 35,
-                "explosionRadius": 100,
-                "damage": 50,
-                "damageDrop": 20,
-                "pieces": 18,
-                "shrapnelDamage": 10
+                "explosionRadius": 80,
+                "damage": 150,
+                "damageDrop": 1,
+                "shrapnel": {
+                    "damage": 25,
+                    "damageDrop": 50,
+                    "speed": 25,
+                    "minRange": 75,
+                    "maxRange": 350,
+                    "pieces": 24
+                }
             }
         },
         "maxEntities": {
             "objects": 1999,
             "bullets": 999,
-            "throwables": 999
+            "throwables": 499
         },
         "guestNames": [
             "Achilles","Alula","Alya","Andromeda",

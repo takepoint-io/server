@@ -4,13 +4,14 @@ const Util = require('./util');
 class Bullet {
     static bulletIDs = new Array(worldValues.maxEntities.bullets).fill(null).map((e, i) => i + 1);
     static bullets = new Map();
-    constructor(player, angle) {
+    constructor(player, angle, customData) {
         this.id = Bullet.getBulletID();
         this.type = 2;
         this.teamCode = player.teamCode;
         this.ownerID = player.id;
         this.createdAt = Date.now();
-        this.parentWeapon = player.weapon;
+        this.isCustom = customData ? 1 : 0;
+        this.parentWeapon = this.isCustom ? customData.weapon : player.weapon;
         this.player = player;
         this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
@@ -58,7 +59,7 @@ class Bullet {
     }
 
     tick() {
-        if (this.distanceFromPlayer >= this.parentWeapon.range || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
+        if ((this.isCustom ? this.distanceFromSpawn : this.distanceFromPlayer) >= this.parentWeapon.range || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
         if (this.shouldDespawn) this.despawn();
         this.x += this.velocity.x;
         this.y += this.velocity.y;
