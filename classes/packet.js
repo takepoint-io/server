@@ -353,7 +353,8 @@ class Packet {
 
             case clientPackets.chat:
                 data.type = "chat";
-                data.message = parts[1];
+                parts.shift();
+                data.message = parts.join(",");
                 break;
 
             case clientPackets.reset:

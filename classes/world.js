@@ -885,7 +885,7 @@ class World {
     handleChat(player, msg) {
         if (!player.spawned) return;
         if (msg.length > 32) msg = msg.substr(0, 32);
-        let filtered = msg.replace(/[^a-zA-Z0-9\t\n ./<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
+        let filtered = msg.replace(/[^a-zA-Z0-9\t\n .,/<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
         player.miscUpdates.set("chat", filtered);
     }
 
