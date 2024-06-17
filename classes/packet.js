@@ -329,6 +329,7 @@ class Packet {
         if (packet.type == "state") {
             return packet.packetList.join("|");
         }
+        if (packet.type == "kick") return serverPackets.kicked;
         throw new Error("Packet type not recognized! Must be either ping or state");
     }
 

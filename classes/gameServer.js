@@ -61,13 +61,22 @@ class GameServer extends EventEmitter {
             this.emit("playerMessage", player, msg);
             client.packetsThisTick++;
             if (client.packetsThisTick > this.#limits.packetsPerTick) {
-                client.close();
+                client.kick();
             }
         });
 
         client.on("close", () => {
             this.emit("playerLeave", player);
+            this.returnID(player.id);
         });
+
+        client.on("error", () => {});
+
+        client.kick = () => {
+            let kick = new Packet({ type: "kicked" }).enc();
+            client.send(kick);
+            client.close();
+        }
     }
 
     pingConnected(client) {
@@ -86,7 +95,7 @@ class GameServer extends EventEmitter {
                 player.afk = true;
             }
             if (Date.now() - player.lastInput > this.#limits.playerIdle) {
-                player.socket.close();
+                player.socket.kick();
             }
         });
     }
