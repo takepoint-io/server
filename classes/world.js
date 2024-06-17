@@ -102,6 +102,7 @@ class World {
         if (this.tickCount % 125 == 0) {
             //point bonus for # of points capped
             for (let [_playerID, player] of this.players) {
+                if (!player.inGame || player.spawnProt) continue;
                 let pointBonus = this.pointStatus[player.teamCode];
                 if (pointBonus > 0) player.addScore(pointBonus);
             }
