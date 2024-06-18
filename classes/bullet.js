@@ -16,8 +16,8 @@ class Bullet {
         this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
         this.velocity = {
-            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed + this.isCustom ? 0 : player.spdX) || 0,
-            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + this.isCustom ? 0 : player.spdY) || 0
+            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdX)) || 0,
+            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdY)) || 0
         };
         this.size = this.parentWeapon.bulletSize;
         this.x = this.parentWeapon.x;

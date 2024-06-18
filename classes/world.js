@@ -82,6 +82,9 @@ class World {
                         break;
                 }
             }
+            for (let key of player.keyDowns) {
+                player.inputs[key[0]] = true;
+            }
         }
     }
 
@@ -146,6 +149,12 @@ class World {
             player.collidingWithObject = false;
             player.miscUpdates.clear();
             player.formUpdates.clear();
+            for (let keyUp of player.keyUps) {
+                let lastDownPress = player.keyDowns.find(keyDown => keyDown[1] > keyUp[1]);
+                if (!["space", "reload", "mouse"].includes(keyUp[0]) || !lastDownPress) player.inputs[keyUp[0]] = false;
+            }
+            player.keyDowns = [];
+            player.keyUps = [];
             if (player.spawnTimeout > 0) player.spawnTimeout--;
             if (player.spawnTimeout == 0 && !player.informedOfRespawn) {
                 player.packet.respawnButtonAvailable();
@@ -822,7 +831,8 @@ class World {
             player.spawnProt = 0;
             player.miscUpdates.set("spawnProt", 0);
         }
-        player.inputs[this.inputTypes[key]] = pressed;
+        let input = [this.inputTypes[key], Date.now()]
+        pressed ? player.keyDowns.push(input) : player.keyUps.push(input);
         player.lastInput = Date.now();
         player.afk = false;
     }
