@@ -161,6 +161,8 @@ class Player {
         this.beingHit = 0;
         this.resetInputs();
         [this.x, this.y] = world.getSpawnPoint(this.teamCode);
+        this.chainTimer = 0;
+        this.chainLevel = 0;
         this.spdX = 0;
         this.spdY = 0;
         this.radius = 25;
@@ -193,7 +195,10 @@ class Player {
             },
             get accuracy() {
                 return this.bulletsFired == 0 ? "-" : (this.bulletsHit / this.bulletsFired * 100).toFixed(2);
-            }
+            },
+            doubleKills: 0,
+            tripleKills: 0,
+            multiKills: 0
         };
         this.stats.setTimeAlive = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;
     }

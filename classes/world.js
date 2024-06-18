@@ -155,6 +155,10 @@ class World {
             }
             player.keyDowns = [];
             player.keyUps = [];
+            if (player.chainTimer > 0) {
+                player.chainTimer--;
+                if (player.chainTimer == 0) player.chainLevel = 0;
+            }
             if (player.spawnTimeout > 0) player.spawnTimeout--;
             if (player.spawnTimeout == 0 && !player.informedOfRespawn) {
                 player.packet.respawnButtonAvailable();
@@ -734,9 +738,22 @@ class World {
         player.spdX = 0;
         player.spdY = 0;
         killer.kills++;
+
         if (player.username != killer.username) {
             player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
             killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
+            killer.chainLevel++;
+            killer.chainTimer = 75;
+            if (killer.chainLevel == 2) {
+                killer.packet.serverMessage(Packet.createServerMessage("doubleKill"));
+                killer.stats.doubleKills++;
+            } else if (killer.chainLevel == 3) {
+                killer.packet.serverMessage(Packet.createServerMessage("tripleKill"));
+                killer.stats.tripleKills++;
+            } else if (killer.chainLevel >= 4) {
+                killer.packet.serverMessage(Packet.createServerMessage("multiKill"));
+                killer.stats.multiKills++;
+            }
         }
     }
 
