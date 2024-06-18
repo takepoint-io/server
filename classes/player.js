@@ -139,6 +139,7 @@ class Player {
     }
 
     takeDamage(amount, from, scorable = true, minHealth = 0) {
+        if (this.destructing) return;
         if (this.shield > 0) {
             this.shield = Util.clamp(this.shield - amount, 0, this.maxShield);
             this.miscUpdates.set("shield", this.shield);

@@ -14,6 +14,7 @@ class SelfDestruct extends Throwable {
         this.warningRadius = 0;
         this.warningValue = 0;
         this.player.packet.serverMessage(Packet.createServerMessage("selfDestruct", selfDestruct.lifespan));
+        this.player.destructing = true;
     }
 
     tick() {
