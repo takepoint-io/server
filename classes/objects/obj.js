@@ -32,6 +32,12 @@ class Obj {
         this.timeToLive--;
     }
 
+    takeDamage(amount) {
+        this.health = Util.clamp(this.health - amount, 0, this.maxHealth);
+        if (this.health == 0) this.despawn();
+        this.updatedThisTick = true;
+    }
+
     despawn() {
         Obj.objects.delete(this.id);
         Obj.returnObjectID(this.id);
