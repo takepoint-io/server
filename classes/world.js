@@ -9,13 +9,16 @@ const PerkList = [
     'objects/barrier',
     'objects/health',
     'throwable/gas',
-    'throwable/frag'
+    'throwable/frag',
+    'throwable/selfDestruct',
+    'objects/turret'
 ].map(e => require('./' + e));
 const Perks = { 
     Barrier: PerkList[0],
     Health: PerkList[1],
     Gas: PerkList[2],
-    Frag: PerkList[3]
+    Frag: PerkList[3],
+    Turret: PerkList[5]
 };
 const Util = require('./util');
 const { worldValues } = require('../data/values.json');
@@ -174,8 +177,8 @@ class World {
         }
     }
 
-    queryPlayers(query) {
-        return this.tree.query(query).filter(e => e.data.type == 0);
+    queryPlayers(x, y, radius) {
+        return this.tree.query(new Circle(x, y, radius)).filter(e => e.data.type == 0);
     }
 
     queryObjects(query) {
@@ -224,7 +227,7 @@ class World {
 
     updatePoints() {
         for (let point of this.points) {
-            let res = this.queryPlayers(new Circle(point.x, point.y, point.radius + 100))
+            let res = this.queryPlayers(point.x, point.y, point.radius + 100)
                 .map(p => this.players.get(p.data.id))
                 .filter(p => p.spawned && !p.spawnProt && Util.hypot(p.x - point.x, p.y - point.y) < point.radius + p.radius * 1.8);
             if (res.length) {
@@ -311,7 +314,7 @@ class World {
                                 object.despawn();
                             }
                         }
-                        else if (object.objectType == 1 && !checkingPlayer.collidingWithObject) {
+                        else if ((object.objectType == 1 || object.objectType == 2) && !checkingPlayer.collidingWithObject) {
                             let angleToObject = Util.toRadians(Util.angle(distX, distY));
                             checkingPlayer.x += Math.cos(angleToObject)
                             checkingPlayer.y += Math.sin(angleToObject);
@@ -342,7 +345,8 @@ class World {
                     entity = player;
                 } else if (entityType == 1) {
                     let object = Obj.objects.get(entityID);
-                    if (!object || object.objectType != 1) continue;
+                    if (!object || (object.objectType != 1 && object.objectType != 2)) continue;
+                    if (object.objectType == 2 && bullet.teamCode == object.teamCode) continue;
                     object.testPosition = {
                         x: object.x,
                         y: object.y
@@ -452,13 +456,13 @@ class World {
             if (player.inputs.space && player.currentCooldown == 0) {
                 switch (player.perkID) {
                     case 1: {
-                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + worldValues.perks.barrier.radius + 10);
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + Perks.Barrier.radius + 10);
                         new Perks.Barrier(spawnPoint.x, spawnPoint.y);
                         player.maxCooldown = Perks.Barrier.cooldown;
                         break;
                     }
                     case 2: {
-                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + worldValues.perks.health.radius + 10);
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + Perks.Health.radius + 10);
                         new Perks.Health(spawnPoint.x, spawnPoint.y);
                         player.maxCooldown = Perks.Health.cooldown;
                         break;
@@ -471,6 +475,12 @@ class World {
                     case 4: {
                         new Perks.Frag(player.x, player.y, player.angle, player, this);
                         player.maxCooldown = Perks.Frag.cooldown;
+                        break;
+                    }
+                    case 6: {
+                        let spawnPoint = Util.circlePoint(player.angle, player, player.radius + Perks.Turret.radius + 10);
+                        new Perks.Turret(spawnPoint.x, spawnPoint.y, player, this);
+                        player.maxCooldown = Perks.Turret.cooldown;
                         break;
                     }
                 }
@@ -490,7 +500,7 @@ class World {
     }
 
     createExplosion(x, y, radius, creator) {
-        let playersHit = this.queryPlayers(new Circle(x, y, radius + 100))
+        let playersHit = this.queryPlayers(x, y, radius + 100)
             .map(p => this.players.get(p.data.id))
             .filter(p => p.inGame && !p.spawnProt && Util.distance(p, {x,y}) < radius + p.radius);
         for (let playerHit of playersHit) {
@@ -501,7 +511,7 @@ class World {
         }
         let objectsHit = this.queryObjects(new Circle(x, y, radius + 100))
             .map(o => Obj.objects.get(o.data.id))
-            .filter(o => o.objectType == 1 && Util.distance(o, {x,y}) < radius + o.radius);
+            .filter(o => (o.objectType == 1 || o.objectType == 2) && Util.distance(o, {x,y}) < radius + o.radius);
         for (let objectHit of objectsHit) {
             let dmg = Perks.Frag.dmg - Math.floor(Util.distance(objectHit, {x,y}) / Perks.Frag.dmgDrop);
             objectHit.takeDamage(dmg);

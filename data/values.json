@@ -85,6 +85,19 @@
                     "maxRange": 350,
                     "pieces": 24
                 }
+            },
+            "turret": {
+                "lifespan": 60,
+                "cooldown": 60,
+                "radius": 30,
+                "bulletSpeed": 25,
+                "rotationSpeed": 5,
+                "passiveRotationSpeed": 2,
+                "range": 400,
+                "damage": 15,
+                "damageDrop": 100,
+                "ticksBeforeFire": 4,
+                "maxHealth": 450
             }
         },
         "maxEntities": {
