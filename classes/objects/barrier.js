@@ -1,5 +1,4 @@
 const Obj = require('./obj');
-const Util = require('../util');
 const { worldValues: { perks: { barrier } } } = require('../../data/values.json');
 
 class Barrier extends Obj {
