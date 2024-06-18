@@ -1,5 +1,5 @@
 {
-    "dev": false,
+    "dev": true,
     "port": 8000,
     "override": false,
     "region": "",
