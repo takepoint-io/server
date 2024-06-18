@@ -363,7 +363,7 @@ class World {
                 }
             }
             if (hits.length == 0) continue;
-            bullet.player.stats.bulletsHit++;
+            if (!bullet.parentWeapon.isPerk) bullet.player.stats.bulletsHit++;
             bullet.despawn();
             let closest = { entity: null, dist: Infinity, pos: null };
             for (let i = 0; i < hits.length; i++) {

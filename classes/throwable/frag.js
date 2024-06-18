@@ -35,7 +35,8 @@ class Frag extends Throwable {
                             damage: Frag.shrapnelDmg,
                             damageDropDistance: Frag.shrapnelDmgDrop,
                             x: this.x,
-                            y: this.y
+                            y: this.y,
+                            isPerk: true
                         }
                     });
                 }

@@ -54,7 +54,8 @@ class Turret extends Obj {
                     damage: Turret.dmg,
                     damageDropDistance: Turret.dmgDrop,
                     x: spawnPoint.x,
-                    y: spawnPoint.y
+                    y: spawnPoint.y,
+                    isPerk: true
                 }
             });
         }
