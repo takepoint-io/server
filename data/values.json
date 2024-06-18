@@ -98,6 +98,19 @@
                 "damageDrop": 100,
                 "ticksBeforeFire": 4,
                 "maxHealth": 450
+            },
+            "selfDestruct": {
+                "lifespan": 3,
+                "explosionRadius": 250,
+                "cosmeticRadii": [
+                    40,
+                    90,
+                    170,
+                    250
+                ],
+                "lowestHealth": 1,
+                "damage": 300,
+                "damageDrop": 1
             }
         },
         "maxEntities": {

@@ -138,14 +138,14 @@ class Player {
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }
 
-    takeDamage(amount, from, scorable = true) {
+    takeDamage(amount, from, scorable = true, minHealth = 0) {
         if (this.shield > 0) {
             this.shield = Util.clamp(this.shield - amount, 0, this.maxShield);
             this.miscUpdates.set("shield", this.shield);
         }
         if (this.shield == 0) {
             let tmpHealth = this.health;
-            this.health = Util.clamp(this.health - amount, 0, this.maxHealth);
+            this.health = Util.clamp(this.health - amount, minHealth, this.maxHealth);
             this.miscUpdates.set("hp", this.health);
             this.beingHit = 1;
             this.miscUpdates.set("beingHit", this.beingHit);

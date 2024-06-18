@@ -24,7 +24,7 @@ class Frag extends Throwable {
         if (this.detonating && !this.detonated) {
             if (this.timeToLive == 0) {
                 this.radius = Frag.radius;
-                this.world.createExplosion(this.x, this.y, this.radius, this.player);
+                this.world.createExplosion(this.x, this.y, this.radius, this.player, Frag.dmg, Frag.dmgDrop);
                 for (let i = 0; i < Frag.shrapnelPieces; i++) {
                     new Bullet(this.player, Util.randRange(0, 360), {
                         weapon: {

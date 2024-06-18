@@ -18,6 +18,7 @@ const Perks = {
     Health: PerkList[1],
     Gas: PerkList[2],
     Frag: PerkList[3],
+    SelfDestruct: PerkList[4],
     Turret: PerkList[5]
 };
 const Util = require('./util');
@@ -477,6 +478,11 @@ class World {
                         player.maxCooldown = Perks.Frag.cooldown;
                         break;
                     }
+                    case 5: {
+                        new Perks.SelfDestruct(player, this);
+                        player.maxCooldown = 100_000; //mhm
+                        break;
+                    }
                     case 6: {
                         let spawnPoint = Util.circlePoint(player.angle, player, player.radius + Perks.Turret.radius + 10);
                         new Perks.Turret(spawnPoint.x, spawnPoint.y, player, this);
@@ -499,21 +505,21 @@ class World {
         }
     }
 
-    createExplosion(x, y, radius, creator) {
+    createExplosion(x, y, radius, creator, damage, damageDrop, minHp = 0) {
         let playersHit = this.queryPlayers(x, y, radius + 100)
             .map(p => this.players.get(p.data.id))
             .filter(p => p.inGame && !p.spawnProt && Util.distance(p, {x,y}) < radius + p.radius);
         for (let playerHit of playersHit) {
             if (playerHit.teamCode == creator.teamCode) continue;
-            let dmg = Perks.Frag.dmg - Math.floor(Util.distance(playerHit, {x,y}) / Perks.Frag.dmgDrop);
-            let res = playerHit.takeDamage(dmg, creator);
+            let dmg = damage - Math.floor(Util.distance(playerHit, {x,y}) / damageDrop);
+            let res = playerHit.takeDamage(dmg, creator, undefined, minHp);
             if (res) this.onPlayerDeath(playerHit, creator);
         }
         let objectsHit = this.queryObjects(new Circle(x, y, radius + 100))
             .map(o => Obj.objects.get(o.data.id))
             .filter(o => (o.objectType == 1 || o.objectType == 2) && Util.distance(o, {x,y}) < radius + o.radius);
         for (let objectHit of objectsHit) {
-            let dmg = Perks.Frag.dmg - Math.floor(Util.distance(objectHit, {x,y}) / Perks.Frag.dmgDrop);
+            let dmg = damage - Math.floor(Util.distance(objectHit, {x,y}) / damageDrop);
             objectHit.takeDamage(dmg);
         }
     }
@@ -718,10 +724,11 @@ class World {
         player.dying = true;
         player.spdX = 0;
         player.spdY = 0;
-        player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
-
         killer.kills++;
-        killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
+        if (player.username != killer.username) {
+            player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
+            killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
+        }
     }
 
     getSpawnPoint(teamCode) {

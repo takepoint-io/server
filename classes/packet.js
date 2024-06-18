@@ -291,7 +291,8 @@ class Packet {
             throwable.velocity.x,
             throwable.velocity.y,
             throwable.detonated || "",
-            throwable.radius
+            throwable.radius,
+            throwable.warningRadius ?? ""
         ].join(",");
         this.data.packetList.push(packet);
     }
