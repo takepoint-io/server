@@ -330,7 +330,7 @@ class Packet {
             player.saveCookie,
             player.loggedIn,
             player.username,
-            player.cookie,
+            player.cookie ?? "",
             errors[0] ?? "",
             errors[1] ?? "",
             errors[2] ?? "",
@@ -437,6 +437,11 @@ class Packet {
                 data.usernameEmail = parts[1];
                 data.password = parts[2];
                 data.rememberMe = Boolean(parts[3]);
+                break;
+            
+            case clientPackets.loginCookie:
+                data.type = "loginCookie";
+                data.cookie = parts[1];
                 break;
             
             case clientPackets.logout:

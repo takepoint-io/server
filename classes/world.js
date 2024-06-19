@@ -843,6 +843,9 @@ class World {
             case "login":
                 this.handleLogin(player, data.usernameEmail, data.password, data.rememberMe);
                 break;
+            case "loginCookie":
+                this.handleLoginCookie(player, data.cookie);
+                break;
             case "logout":
                 this.handleLogout(player);
                 break;
@@ -973,7 +976,7 @@ class World {
                 if (!resp.data.error) {
                     player.loggedIn = 1;
                     player.username = username;
-                    player.cookie = "not_implemented";
+                    player.cookie = resp.data.cookie;
                 } else {
                     errors[resp.data.code] = resp.data.desc;
                 }
@@ -997,7 +1000,7 @@ class World {
                 if (!resp.data.error) {
                     player.loggedIn = 1;
                     player.username = resp.data.username;
-                    player.cookie = rememberMe ? "not_implemented" : "not_implemented";
+                    if (rememberMe) player.cookie = resp.data.cookie;
                 } else {
                     errors[0] = resp.data.desc;
                 }
@@ -1010,13 +1013,33 @@ class World {
         }
     }
 
+    handleLoginCookie(player, cookie) {
+        this.postRequest('/auth/loginCookie', {
+            cookie
+        }).then(resp => {
+            if (!resp.data.error) {
+                player.loggedIn = 1;
+                player.username = resp.data.username;
+                player.cookie = resp.data.cookie;
+                player.packet.auth(player);
+            }
+        }).catch(e => {});
+    }
+
     handleLogout(player) {
         if (player.spawned) return;
         player.loggedIn = 0;
+        let tmpUsername = player.username;
         player.username = "Guest " + player.guestName;
         player.cookie = "";
         player.saveCookie = 0;
-        player.packet.auth(player);
+        this.postRequest('/auth/logout', {
+            username: tmpUsername
+        }).then(resp => {
+            player.packet.auth(player);
+        }).catch(e => {
+            player.packet.auth(player);
+        });
     }
 
     handlePlayerJoin(player) {
