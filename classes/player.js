@@ -46,6 +46,8 @@ class Player {
         this.username = "";
         this.guestName = "";
         this.loggedIn = 0;
+        this.cookie = null;
+        this.saveCookie = 0;
 
         this.mouse = {
             x: 0,
@@ -171,6 +173,7 @@ class Player {
         this.shield = this.maxShield;
         this.accumulatedHealth = 0;
         this.level = 0;
+        this.destructing = 0;
         this.resetGameStats();
         this.resetSkillPoints();
         this.resetUpgrades();

@@ -324,6 +324,21 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    auth(player, errors = []) {
+        let packet = [
+            serverPackets.authentication,
+            player.saveCookie,
+            player.loggedIn,
+            player.username,
+            player.cookie,
+            errors[0] ?? "",
+            errors[1] ?? "",
+            errors[2] ?? "",
+            errors[3] ?? ""
+        ].join(",");
+        player.socket.send(new Packet({ type: "state", packetList: [packet] }).enc());
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
@@ -406,8 +421,26 @@ class Packet {
                 break;
 
             case clientPackets.adBlock:
-                data.type = "adBlock",
+                data.type = "adBlock";
                 data.enabled = parseInt(parts[1]);
+                break;
+
+            case clientPackets.register:
+                data.type = "register";
+                data.username = parts[1];
+                data.email = parts[2];
+                data.password = parts[3];
+                break;
+            
+            case clientPackets.login:
+                data.type = "login";
+                data.usernameEmail = parts[1];
+                data.password = parts[2];
+                data.rememberMe = Boolean(parts[3]);
+                break;
+            
+            case clientPackets.logout:
+                data.type = "logout";
                 break;
 
             default:

@@ -27,7 +27,8 @@
         "minimap": "mp",
         "respawn": "re",
         "stats": "sta",
-        "ping": "."
+        "ping": ".",
+        "authentication": "auth"
     },
     "clientPackets": {
         "ping": ".",
@@ -41,7 +42,11 @@
         "spawn": "s",
         "upgrade": "u",
         "gun": "w",
-        "adBlock": "x"
+        "adBlock": "x",
+        "register": "ar",
+        "login": "al",
+        "logout": "ao",
+        "loginCookie": "ac"
     },
     "weapons": {
         "pistol": 0,

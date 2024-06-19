@@ -1,4 +1,5 @@
 const { QuadTree, Box, Circle } = require('js-quadtree');
+const validator = require('email-validator');
 const Packet = require('./packet');
 const Point = require('./point');
 const Bullet = require('./bullet');
@@ -26,8 +27,9 @@ const { worldValues } = require('../data/values.json');
 
 class World {
     inputTypes = ["left", "right", "up", "down", "reload", "space", "mouse"];
-    constructor(players, devMode) {
+    constructor(players, devMode, postRequest) {
         this.devMode = devMode;
+        this.postRequest = postRequest;
         this.radius = worldValues.radius;
         this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
         this.pointStatus = [0, 0, 0];
@@ -834,6 +836,16 @@ class World {
                 break;
             case "chat":
                 this.handleChat(player, data.message);
+                break;
+            case "register":
+                this.handleRegistration(player, data.username, data.email, data.password);
+                break;
+            case "login":
+                this.handleLogin(player, data.usernameEmail, data.password, data.rememberMe);
+                break;
+            case "logout":
+                this.handleLogout(player);
+                break;
             default:
                 break;
         }
@@ -932,6 +944,79 @@ class World {
         if (msg.length > 32) msg = msg.substr(0, 32);
         let filtered = msg.replace(/[^a-zA-Z0-9\t\n .,/<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
         player.miscUpdates.set("chat", filtered);
+    }
+
+    handleRegistration(player, username, email, password) {
+        if (player.spawned) return;
+        let errors = [];
+        let usernameIsAlpha = new RegExp(/^[a-z0-9]+$/i).test(username); 
+        let emailIsValid = validator.validate(email);
+        if (!usernameIsAlpha) {
+            errors[1] = "Username must be alphanumeric: [a-z0-9]";
+        } else if (username.length < 3 ) {
+            errors[1] = "Username must be at least 3 characters.";
+        } else if (username.length > 12) {
+            errors[1] = "Username may not be more than 12 characters.";
+        }
+        if (!emailIsValid) {
+            errors[2] = "Email is not valid.";
+        }
+        if (password.length < 6) {
+            errors[3] = "Passwords can not be shorter than 6 characters.";
+        } else if (password.length > 200) {
+            errors[3] = "What is wrong with you?";
+        }
+        if (!errors.length) {
+            this.postRequest('/auth/register', {
+                username, email, password
+            }).then(resp => {
+                if (!resp.data.error) {
+                    player.loggedIn = 1;
+                    player.username = username;
+                    player.cookie = "not_implemented";
+                } else {
+                    errors[resp.data.code] = resp.data.desc;
+                }
+                player.packet.auth(player, errors);
+            }).catch(e => {});
+        } else {
+            player.packet.auth(player, errors);
+        }
+    }
+
+    handleLogin(player, usernameEmail, password, rememberMe) {
+        if (player.spawned) return;
+        let errors = [];
+        if (password.length > 200 || usernameEmail.length > 255) {
+            errors[0] = "The provided username and password does not exist in our database.";
+        }
+        if (!errors.length) {
+            this.postRequest('/auth/login', {
+                usernameEmail, password
+            }).then(resp => {
+                if (!resp.data.error) {
+                    player.loggedIn = 1;
+                    player.username = resp.data.username;
+                    player.cookie = rememberMe ? "not_implemented" : "not_implemented";
+                } else {
+                    errors[0] = resp.data.desc;
+                }
+                player.packet.auth(player, errors);
+            }).catch(e => {
+                player.packet.auth(player, ["The database is currently offline."]);
+            });
+        } else {
+            player.packet.auth(player, errors);
+        }
+    }
+
+    handleLogout(player) {
+        if (player.spawned) return;
+        player.loggedIn = 0;
+        player.username = "Guest " + player.guestName;
+        player.cookie = "";
+        player.saveCookie = 0;
+        player.packet.auth(player);
     }
 
     handlePlayerJoin(player) {

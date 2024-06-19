@@ -9,7 +9,7 @@ const APIUrl = process.env.APIUrl || 'http://127.0.0.1:8080';
 const serverPort = serverConfig.port || 8000;
 
 const gameServer = new GameServer(serverPort, serverConfig.capacity);
-const world = new World(gameServer.players, serverConfig.dev);
+const world = new World(gameServer.players, serverConfig.dev, postRequest);
 
 gameServer.on("playerJoin", player => {
     world.handlePlayerJoin(player);
@@ -39,6 +39,16 @@ const serverStats = {
     id: Math.floor(Math.random() * 9000) + 1000,
     consecutiveFails: 0
 };
+
+function postRequest(endpoint, data) {
+    return axios.post(`${APIUrl}${endpoint}`, {
+        auth: {
+            id: serverStats.id,
+            registerKey: process.env.registerKey
+        },
+        data: data
+    });
+}
 
 function nextTick() {
     try {
