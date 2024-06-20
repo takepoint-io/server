@@ -129,6 +129,7 @@ class World {
                 for (let [_playerID, player] of this.players) {
                     player.packet.playersOnline(this.players.size);
                 }
+                this.handleLogout(player, true);
                 continue;
             }
             else if (player.registeredEvents.includes("despawned")) {
@@ -1026,8 +1027,8 @@ class World {
         }).catch(e => {});
     }
 
-    handleLogout(player) {
-        if (player.spawned) return;
+    handleLogout(player, override) {
+        if (player.spawned && !override) return;
         player.loggedIn = 0;
         let tmpUsername = player.username;
         player.username = "Guest " + player.guestName;

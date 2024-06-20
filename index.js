@@ -76,8 +76,21 @@ function nextTick() {
                 capacity: serverConfig.capacity
             },
             override: serverConfig.override
-        })
-        .catch(error => {});
+        }).catch(error => {});
+
+        let playerUsernames = [];
+        for (let [_playerID, player] of gameServer.players) {
+            if (player.loggedIn) playerUsernames.push(player.username);
+        }
+        axios.post(`${APIUrl}/auth/updateSessions`, {
+            auth: {
+                id: serverStats.id,
+                registerKey: process.env.registerKey
+            },
+            data: {
+                sessions: JSON.stringify(playerUsernames)
+            }
+        }).catch(error => {});
         serverStats.lastAPIUpdate = Date.now();
     }
 }
