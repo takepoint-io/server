@@ -769,7 +769,7 @@ class World {
             killer.packet.serverMessage(Packet.createServerMessage("died"));
         }
 
-        if (player.loggedIn) {
+        if (player.loggedIn && !this.devMode) {
             player.stats.upgrades = player.upgrades;
             player.stats.perkID = player.perkID;
             this.postRequest('/gameStats', {
