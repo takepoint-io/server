@@ -20,8 +20,8 @@ class Bullet {
             y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdY)) || 0
         };
         this.size = this.parentWeapon.bulletSize;
-        this.x = this.parentWeapon.x;
-        this.y = this.parentWeapon.y;
+        this.x = this.parentWeapon.x + this.player.spdX;
+        this.y = this.parentWeapon.y + this.player.spdY;
         this.spawnedAt = {
             x: this.x,
             y: this.y

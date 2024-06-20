@@ -154,7 +154,7 @@ class World {
             player.formUpdates.clear();
             for (let keyUp of player.keyUps) {
                 let lastDownPress = player.keyDowns.find(keyDown => keyDown[1] > keyUp[1]);
-                if (!["space", "reload", "mouse"].includes(keyUp[0]) || !lastDownPress) player.inputs[keyUp[0]] = false;
+                player.inputs[keyUp[0]] = false;
             }
             player.keyDowns = [];
             player.keyUps = [];
