@@ -17,7 +17,7 @@ class Packet {
     leaderboard(lb) {
         let packet = [
             serverPackets.leaderboard,
-            [...lb.map(p => `${p.id}.${p.username}.${p.score}.${p.kills}.${p.teamCode}`)]
+            [...lb.map(p => `${p.id}.${p.username}.${p.stats.score}.${p.stats.kills}.${p.teamCode}`)]
         ].join(",");
         this.data.packetList.push(packet);
     }
@@ -93,7 +93,7 @@ class Packet {
             player.angle,
             player.health,
             player.maxHealth,
-            player.score,
+            player.stats.score,
             player.level,
             player.weapon.ammo,
             player.weapon.maxAmmo,
@@ -308,9 +308,9 @@ class Packet {
     stats(player) {
         let packet = [
             serverPackets.stats,
-            player.score,
+            player.stats.score,
             player.level,
-            player.kills,
+            player.stats.kills,
             player.stats.ticksAlive,
             player.stats.accuracy,
             player.stats.pointsNeutralized,

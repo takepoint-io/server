@@ -28,11 +28,10 @@ class Player {
         this.y = 0;
         this.spdX = 0;
         this.spdY = 0;
+        this.resetGameStats();
         this.resetViewbox();
         this.angle = Math.floor(Math.random() * 360);
         this.resetUpgrades();
-        this.score = 0;
-        this.kills = 0;
         this.level = 0;
         this.resetWeapon();
         this.resetPerk();
@@ -93,7 +92,7 @@ class Player {
 
     get expectedLevel() {
         for (let i = levels.length - 1; i >= 0; i--) {
-            if (this.score >= levels[i]) return i;
+            if (this.stats.score >= levels[i]) return i;
         }
         return 0;
     }
@@ -110,7 +109,7 @@ class Player {
 
     addScore(amount) {
         if (!this.spawned) return;
-        this.score += amount;
+        this.stats.score += amount;
         let expectedLevel = this.expectedLevel;
         if (this.level < expectedLevel) {
             this.level = expectedLevel;
@@ -136,7 +135,7 @@ class Player {
                 this.formUpdates.set("perkUpgradeAvailable", this.perkUpgradeAvailable);
             }
         }
-        this.formUpdates.set("score", this.score);
+        this.formUpdates.set("score", this.stats.score);
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }
 
@@ -174,26 +173,37 @@ class Player {
         this.accumulatedHealth = 0;
         this.level = 0;
         this.destructing = 0;
+        let tempScore = this.stats.score;
         this.resetGameStats();
         this.resetSkillPoints();
         this.resetUpgrades();
         this.resetWeapon();
         this.resetPerk();
         this.resetViewbox();
-        let tempScore = this.score;
-        this.score = 0;
         if (tempScore > 0) this.addScore(Math.floor(tempScore / 4));
-        this.kills = 0;
         this.spawnProt = 1;
     }
 
     resetGameStats() {
         this.stats = {
+            score: 0,
+            kills: 0,
             spawnTime: Date.now(),
+            weaponChosenTime: null,
+            weaponChosenID: 0,
+            timeAlive: null,
             bulletsFired: 0,
             bulletsHit: 0,
+            damageDealt: 0,
             pointsNeutralized: 0,
             pointsTaken: 0,
+            distanceCovered: 0,
+            weapons: new Array(4).fill(null).map(e => ({
+                kills: 0,
+                bulletsFired: 0,
+                bulletsHit: 0,
+                damageDealt: 0
+            })),
             get ticksAlive() {
                 return Math.floor(this.timeAlive / 40);
             },
@@ -204,7 +214,7 @@ class Player {
             tripleKills: 0,
             multiKills: 0
         };
-        this.stats.setTimeAlive = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;
+        this.stats.stopGameTimer = () => this.stats.timeAlive = Date.now() - this.stats.spawnTime;
     }
 
     resetSkillPoints() {
@@ -218,7 +228,7 @@ class Player {
             reload: 0,
             mags: 0,
             view: 0, //each level expands viewbox by * 1.1
-            regen: 0
+            heal: 0
         };
     }
 
@@ -238,6 +248,8 @@ class Player {
 
     setWeapon(weaponName) {
         this.weapon = new Weapon(weaponName, this);
+        this.stats.weaponChosenTime = Date.now();
+        this.stats.weaponChosenID = this.weapon.id;
     }
 
     resetInputs() {

@@ -136,7 +136,6 @@ class World {
                 player.spawnTimeout = 3 * 25;
                 player.informedOfRespawn = false;
                 player.packet.playerExit(player.id);
-                player.stats.setTimeAlive();
                 player.packet.stats(player);
             }
             player.packet.playerUpdate(player);
@@ -153,7 +152,7 @@ class World {
             player.miscUpdates.clear();
             player.formUpdates.clear();
             for (let keyUp of player.keyUps) {
-                let lastDownPress = player.keyDowns.find(keyDown => keyDown[1] > keyUp[1]);
+                //let lastDownPress = player.keyDowns.find(keyDown => keyDown[1] > keyUp[1]);
                 player.inputs[keyUp[0]] = false;
             }
             player.keyDowns = [];
@@ -236,7 +235,7 @@ class World {
 
     updateLeaderboard() {
         let playerArray = Array.from(this.players, ([n,v]) => v).filter(p => p.spawned);
-        this.leaderboard = playerArray.sort((a, b) => b.score - a.score).slice(0, 10);
+        this.leaderboard = playerArray.sort((a, b) => b.stats.score - a.stats.score).slice(0, 10);
         for (let [_playerID, player] of this.players) {
             player.packet.leaderboard(this.leaderboard);
         }
@@ -380,7 +379,12 @@ class World {
                 }
             }
             if (hits.length == 0) continue;
-            if (!bullet.parentWeapon.isPerk) bullet.player.stats.bulletsHit++;
+            if (!bullet.parentWeapon.isPerk) {
+                bullet.player.stats.weapons[bullet.player.weapon.id].bulletsHit++;
+                bullet.player.stats.weapons[bullet.player.weapon.id].damageDealt += bullet.dmg;
+            }
+            bullet.player.stats.bulletsHit++;
+            bullet.player.stats.damageDealt += bullet.dmg;
             bullet.despawn();
             let closest = { entity: null, dist: Infinity, pos: null };
             for (let i = 0; i < hits.length; i++) {
@@ -391,7 +395,7 @@ class World {
                         dist: dist,
                         pos: hits[i].pos
                     };
-                } 
+                }
             }
             switch (closest.entity.type) {
                 case 0:
@@ -448,6 +452,7 @@ class World {
                 let bullets = weapon.attemptFire();
                 if (bullets) {
                     player.stats.bulletsFired += bullets.length;
+                    player.stats.weapons[player.weapon.id].bulletsFired += bullets.length;
                     player.miscUpdates.set("firing", weapon.firing); 
                     player.formUpdates.set("ammo", weapon.ammo);
                 }
@@ -656,6 +661,7 @@ class World {
             let tmpY = player.y;
             player.x += player.rSpdX;
             player.y += player.rSpdY;
+            player.stats.distanceCovered += Util.hypot(player.rSpdX, player.rSpdY);
             let distToCenter = Util.hypot(player.x, player.y);
             if (distToCenter > 4250) {
                 if (Util.hypot(tmpX, tmpY) > 4249) {
@@ -717,7 +723,7 @@ class World {
 
     updatePlayerHealth(player) {
         if (!player.dying) {
-            let healedThisTick = 0.04 + 0.02 * player.upgrades.regen;
+            let healedThisTick = 0.04 + 0.02 * player.upgrades.heal;
             player.accumulatedHealth += healedThisTick;
             if (Math.abs(player.accumulatedHealth) < 1) return;
             player.health = Util.clamp(player.health + Math.floor(player.accumulatedHealth), 0, player.maxHealth);
@@ -740,7 +746,9 @@ class World {
         player.dying = true;
         player.spdX = 0;
         player.spdY = 0;
-        killer.kills++;
+        player.stats.stopGameTimer();
+        killer.stats.kills++;
+        killer.stats.weapons[killer.weapon.id].kills++;
 
         if (player.username != killer.username) {
             player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
@@ -757,6 +765,17 @@ class World {
                 killer.packet.serverMessage(Packet.createServerMessage("multiKill"));
                 killer.stats.multiKills++;
             }
+        } else if (killer.perkID != 6) {
+            killer.packet.serverMessage(Packet.createServerMessage("died"));
+        }
+
+        if (player.loggedIn) {
+            player.stats.upgrades = player.upgrades;
+            player.stats.perkID = player.perkID;
+            this.postRequest('/gameStats', {
+                stats: JSON.stringify(player.stats),
+                username: player.username
+            }).catch(e => {});
         }
     }
 
@@ -915,7 +934,7 @@ class World {
                 player.formUpdates.set("vy", player.viewbox.y);
                 break;
             case 5:
-                player.upgrades.regen++;
+                player.upgrades.heal++;
                 break;
         }
     }
