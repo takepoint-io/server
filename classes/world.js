@@ -771,12 +771,12 @@ class World {
             }
         }
 
-        if (player.loggedIn && !this.devMode) {
+        if (!this.devMode) {
             player.stats.upgrades = player.upgrades;
             player.stats.perkID = player.perkID;
             this.postRequest('/gameStats', {
                 stats: JSON.stringify(player.stats),
-                username: player.username
+                username: player.loggedIn ? player.username : "N/A"
             }).catch(e => {});
         }
     }
