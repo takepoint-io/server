@@ -747,26 +747,28 @@ class World {
         player.spdX = 0;
         player.spdY = 0;
         player.stats.stopGameTimer();
-        killer.stats.kills++;
-        killer.stats.weapons[killer.weapon.id].kills++;
+        if (killer) {
+            killer.stats.kills++;
+            killer.stats.weapons[killer.weapon.id].kills++;
 
-        if (player.username != killer.username) {
-            player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
-            killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
-            killer.chainLevel++;
-            killer.chainTimer = 75;
-            if (killer.chainLevel == 2) {
-                killer.packet.serverMessage(Packet.createServerMessage("doubleKill"));
-                killer.stats.doubleKills++;
-            } else if (killer.chainLevel == 3) {
-                killer.packet.serverMessage(Packet.createServerMessage("tripleKill"));
-                killer.stats.tripleKills++;
-            } else if (killer.chainLevel >= 4) {
-                killer.packet.serverMessage(Packet.createServerMessage("multiKill"));
-                killer.stats.multiKills++;
+            if (player.username != killer.username) {
+                player.packet.serverMessage(Packet.createServerMessage("killed", killer.username));
+                killer.packet.serverMessage(Packet.createServerMessage("kill", player.username));
+                killer.chainLevel++;
+                killer.chainTimer = 75;
+                if (killer.chainLevel == 2) {
+                    killer.packet.serverMessage(Packet.createServerMessage("doubleKill"));
+                    killer.stats.doubleKills++;
+                } else if (killer.chainLevel == 3) {
+                    killer.packet.serverMessage(Packet.createServerMessage("tripleKill"));
+                    killer.stats.tripleKills++;
+                } else if (killer.chainLevel >= 4) {
+                    killer.packet.serverMessage(Packet.createServerMessage("multiKill"));
+                    killer.stats.multiKills++;
+                }
+            } else if (killer.perkID != 6) {
+                killer.packet.serverMessage(Packet.createServerMessage("died"));
             }
-        } else if (killer.perkID != 6) {
-            killer.packet.serverMessage(Packet.createServerMessage("died"));
         }
 
         if (player.loggedIn && !this.devMode) {
@@ -1073,6 +1075,9 @@ class World {
 
     handlePlayerLeave(player) {
         player.team.removePlayer(player);
+        if (Date.now() - player.stats.spawnTime > 60 * 1000) {
+            this.onPlayerDeath(player);
+        }
         player.registeredEvents.push("disconnected");
     }
 }
