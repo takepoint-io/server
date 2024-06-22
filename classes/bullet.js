@@ -59,7 +59,7 @@ class Bullet {
     }
 
     tick() {
-        if ((this.isCustom ? this.distanceFromSpawn : this.distanceFromPlayer) >= this.parentWeapon.range || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
+        if (this.distanceFromSpawn >= this.parentWeapon.range || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
         if (this.shouldDespawn) this.despawn();
         this.x += this.velocity.x;
         this.y += this.velocity.y;

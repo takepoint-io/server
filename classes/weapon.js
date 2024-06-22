@@ -27,7 +27,7 @@ class Weapon {
             case weapons.pistol:
                 return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 16)) * 65);
             case weapons.assault:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 12)) * 105);
+                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 11)) * 110);
             case weapons.sniper:
                 return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 8)) * 135);
             case weapons.shotgun:
@@ -40,7 +40,7 @@ class Weapon {
             case weapons.pistol:
                 return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 16)) * 65);
             case weapons.assault:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 12)) * 105);
+                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 11)) * 110);
             case weapons.sniper:
                 return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 8)) * 135);
             case weapons.shotgun:
