@@ -698,10 +698,10 @@ class World {
 
         //Update velocity based on player input if not colliding
         if (!player.collidingWithObject) {
-            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 8;
-            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 8;
-            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 8;
-            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 8;
+            if (player.inputs.left  && !player.inputs.right) player.spdX -= (player.maxSpeed + player.spdX) / 9;
+            if (player.inputs.right && !player.inputs.left ) player.spdX += (player.maxSpeed - player.spdX) / 9;
+            if (player.inputs.up    && !player.inputs.down ) player.spdY -= (player.maxSpeed + player.spdY) / 9;
+            if (player.inputs.down  && !player.inputs.up   ) player.spdY += (player.maxSpeed - player.spdY) / 9;
         }
 
         /*if (player.numInputs > 1) {
