@@ -28,7 +28,8 @@
         "respawn": "re",
         "stats": "sta",
         "ping": ".",
-        "authentication": "auth"
+        "authentication": "auth",
+        "captcha": "ce"
     },
     "clientPackets": {
         "ping": ".",
@@ -41,6 +42,7 @@
         "debug": "r",
         "spawn": "s",
         "upgrade": "u",
+        "captcha": "v",
         "gun": "w",
         "adBlock": "x",
         "register": "ar",

@@ -339,6 +339,11 @@ class Packet {
         player.socket.send(new Packet({ type: "state", packetList: [packet] }).enc());
     }
 
+    requestCaptcha() {
+        let packet = serverPackets.captcha;
+        this.data.packetList.push(packet);
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;
@@ -446,6 +451,11 @@ class Packet {
             
             case clientPackets.logout:
                 data.type = "logout";
+                break;
+            
+            case clientPackets.captcha:
+                data.type = "captcha";
+                data.token = parts[1];
                 break;
 
             default:

@@ -1,5 +1,6 @@
+require('dotenv').config();
 const { QuadTree, Box, Circle } = require('js-quadtree');
-const validator = require('email-validator');
+const axios = require('axios');
 const Packet = require('./packet');
 const Point = require('./point');
 const Bullet = require('./bullet');
@@ -78,6 +79,7 @@ class World {
                         for (let [_playerID, player] of this.players) {
                             player.packet.playersOnline(this.players.size);
                         }
+                        player.packet.requestCaptcha();
                         break;
                     case "afk":
                         player.packet.serverMessage(Packet.createServerMessage("afk", 60 * 25));
@@ -871,6 +873,9 @@ class World {
             case "logout":
                 this.handleLogout(player);
                 break;
+            case "captcha":
+                this.handleCaptcha(player, data.token);
+                break;
             default:
                 break;
         }
@@ -902,7 +907,7 @@ class World {
     }
 
     handleSpawn(player) {
-        if (!player.spawned) {
+        if (!player.spawned && player.verified) {
             player.registeredEvents.push("spawned");
             player.spawned = true;
         }
@@ -1062,6 +1067,17 @@ class World {
         }).catch(e => {
             player.packet.auth(player);
         });
+    }
+
+    async handleCaptcha(player, token) {
+        if (!process.env.captchaKey) return;
+        let params = `?secret=${process.env.captchaKey}&response=${token}&remoteip=${player.socket.ip}`;
+        let resp = await axios.post("https://www.google.com/recaptcha/api/siteverify" + params);
+        if (!resp.data.success || resp.score <= 0.3) {
+            player.socket.kick();
+            return;
+        }
+        player.verified = true;
     }
 
     handlePlayerJoin(player) {

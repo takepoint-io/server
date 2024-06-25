@@ -1,3 +1,4 @@
+require('dotenv').config();
 const Weapon = require("./weapon");
 const Packet = require("./packet");
 const Util = require("./util");
@@ -9,6 +10,7 @@ class Player {
         this.type = 0;
         this.socket = socket;
         this.packet = new Packet();
+        this.verified = process.env.captchaKey ? false : true;
         
         this.loadingScreenDir = 0;
         this.inGame = false;

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const WebSocket = require('ws');
 const { createServer } = require('http');
 const EventEmitter = require('node:events');
@@ -8,7 +9,8 @@ class GameServer extends EventEmitter {
     #limits = {
         pingSocketTTL: 12_000,
         playerIdle: 120_000,
-        packetsPerTick: 100
+        packetsPerTick: 100,
+        connectionsPerIP: 3
     }
     constructor(port, capacity) {
         super();
@@ -24,7 +26,7 @@ class GameServer extends EventEmitter {
         let clientServer = this.clientServer;
         let pingServer = this.pingServer;
 
-        clientServer.on("connection", client => this.playerConnected(client));
+        clientServer.on("connection", (client, req) => this.playerConnected(client, req));
         pingServer.on("connection", client => this.pingConnected(client));
 
         this.httpServer.on("upgrade", function upgrade(request, socket, head) {
@@ -48,11 +50,21 @@ class GameServer extends EventEmitter {
         setInterval(() => this.globalSweep(), 1000);
     }
 
-    playerConnected(client) {
+    playerConnected(client, req) {
+        client.kick = () => {
+            let kick = new Packet({ type: "kicked" }).enc();
+            client.send(kick);
+            client.close();
+        }
+        if (!this.isConnectionSecure(client, req)) {
+            client.kick();
+            return;
+        }
         let playerID = this.generateID();
         let player = new Player(playerID, client);
         this.players.set(playerID, player); 
         this.emit("playerJoin", player);
+        client.createdAt = Date.now();
         client.lastActive = Date.now();
         client.lastPing = Date.now();
         client.packetsThisTick = 0;
@@ -71,12 +83,6 @@ class GameServer extends EventEmitter {
         });
 
         client.on("error", () => {});
-
-        client.kick = () => {
-            let kick = new Packet({ type: "kicked" }).enc();
-            client.send(kick);
-            client.close();
-        }
     }
 
     pingConnected(client) {
@@ -88,6 +94,24 @@ class GameServer extends EventEmitter {
         });
     }
 
+    isConnectionSecure(client, req) {
+        client.ip = req.socket.remoteAddress || req.headers['x-forwarded-for'];
+        client.userAgent = req.headers['user-agent'];
+        client.origin = req.headers.origin;
+        if (
+            client.origin != process.env.expectedOrigin && 
+            !client.origin.startsWith('http://127.0.0.1') &&
+            !client.origin.startsWith('http://localhost')
+        ) return false;
+        if (client.userAgent.includes(process.env.pwd)) return true;
+        let numClientsWithIP = 0;
+        for (let [_playerID, player] of this.players) {
+            if (player.socket.ip == client.ip) numClientsWithIP++;
+        }
+        if (numClientsWithIP >= this.#limits.connectionsPerIP) return false;
+        return true;
+    }
+
     globalSweep() {
         this.players.forEach(player => {
             if (this.#limits.playerIdle - (Date.now() - player.lastInput) < 60_000 && !player.afk) {
@@ -96,6 +120,9 @@ class GameServer extends EventEmitter {
             }
             if (Date.now() - player.lastInput > this.#limits.playerIdle) {
                 player.socket.kick();
+            }
+            if (Date.now() - player.socket.createdAt > 4000 && !player.verified) {
+                player.socketk.kick();
             }
         });
     }
