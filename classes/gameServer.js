@@ -122,7 +122,7 @@ class GameServer extends EventEmitter {
                 player.socket.kick();
             }
             if (Date.now() - player.socket.createdAt > 4000 && !player.verified) {
-                player.socketk.kick();
+                player.socket.kick();
             }
         });
     }
