@@ -8,7 +8,8 @@ class Turret extends Obj {
     static radius = turret.radius;
     static bulletSpeed = turret.bulletSpeed;
     static rotationSpeed = turret.rotationSpeed;
-    static range = turret.range;
+    static travelTicks = turret.travelTicks;
+    static range = turret.travelTicks * turret.bulletSpeed;
     static dmg = turret.damage;
     static dmgDrop = turret.damageDrop;
     static ticksBeforeFire = turret.ticksBeforeFire;
@@ -50,7 +51,7 @@ class Turret extends Obj {
                     bulletSpeed: Turret.bulletSpeed,
                     bulletSize: 2,
                     id: 1,
-                    range: Turret.range,
+                    range: Turret.travelTicks,
                     damage: Turret.dmg,
                     damageDropDistance: Turret.dmgDrop,
                     x: spawnPoint.x,

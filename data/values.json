@@ -93,7 +93,7 @@
                 "bulletSpeed": 25,
                 "rotationSpeed": 5,
                 "passiveRotationSpeed": 2,
-                "range": 400,
+                "travelTicks": 20,
                 "damage": 15,
                 "damageDrop": 100,
                 "ticksBeforeFire": 4,

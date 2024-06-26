@@ -20,6 +20,7 @@ class Bullet {
             y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdY)) || 0
         };
         this.size = this.parentWeapon.bulletSize;
+        this.timeToLive = this.parentWeapon.range;
         this.x = this.parentWeapon.x + this.player.spdX;
         this.y = this.parentWeapon.y + this.player.spdY;
         this.spawnedAt = {
@@ -59,7 +60,8 @@ class Bullet {
     }
 
     tick() {
-        if (this.distanceFromSpawn >= this.parentWeapon.range || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
+        this.timeToLive--;
+        if (this.timeToLive == 0 || Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) > 4250) this.shouldDespawn = true;
         if (this.shouldDespawn) this.despawn();
         this.x += this.velocity.x;
         this.y += this.velocity.y;

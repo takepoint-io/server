@@ -98,6 +98,7 @@ class GameServer extends EventEmitter {
         client.ip = req.socket.remoteAddress || req.headers['x-forwarded-for'];
         client.userAgent = req.headers['user-agent'];
         client.origin = req.headers.origin;
+        if (!client.origin) return false;
         if (
             client.origin != process.env.expectedOrigin && 
             !client.origin.startsWith('http://127.0.0.1') &&

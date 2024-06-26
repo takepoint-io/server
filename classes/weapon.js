@@ -150,13 +150,13 @@ class Weapon {
     static range(id) {
         switch (id) {
             case weapons.pistol:
-                return 675;
+                return 22;
             case weapons.assault:
-                return 650;
+                return 20;
             case weapons.sniper:
-                return 1000;
+                return 24;
             case weapons.shotgun:
-                return 350;
+                return 12;
         }
     }
 
