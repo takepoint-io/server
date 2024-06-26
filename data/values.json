@@ -66,8 +66,8 @@
                 "travelSpeed": 12,
                 "travelTicks": 35,
                 "expansionSpeed": 4,
-                "maxRadius": 160,
-                "damage": 0.5
+                "maxRadius": 220,
+                "damage": 0.8
             },
             "frag": {
                 "lifespan": 2,

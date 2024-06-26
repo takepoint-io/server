@@ -427,6 +427,7 @@ class World {
                     if (distance < throwable.radius + checkingPlayer.radius) {
                         switch (throwable.throwableType) {
                             case 0:
+                                if (throwable.teamCode == checkingPlayer.teamCode) break;
                                 checkingPlayer.accumulatedHealth -= Perks.Gas.dmg;
                                 if (checkingPlayer.accumulatedHealth < 0) {
                                     let dmg = Math.abs(Math.ceil(checkingPlayer.accumulatedHealth));

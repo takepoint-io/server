@@ -276,7 +276,8 @@ class Packet {
             throwable.y,
             throwable.angle,
             throwable.velocity.x,
-            throwable.velocity.y
+            throwable.velocity.y,
+            throwable.teamCode ?? ""
         ].join(",");
         this.data.packetList.push(packet);
     }
