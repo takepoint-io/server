@@ -28,8 +28,8 @@ const { worldValues } = require('../data/values.json');
 
 class World {
     inputTypes = ["left", "right", "up", "down", "reload", "space", "mouse"];
-    constructor(players, devMode, postRequest) {
-        this.devMode = devMode;
+    constructor(players, config, postRequest) {
+        this.config = config;
         this.postRequest = postRequest;
         this.radius = worldValues.radius;
         this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
@@ -63,7 +63,7 @@ class World {
                 switch (event) {
                     case "spawned":
                         player.respawn(this);
-                        if (this.devMode) player.addScore(20000);
+                        if (this.config.dev) player.addScore(20000);
                         player.packet.spawn(player);
                         for (let point of this.points) {
                             player.packet.pointInfo(point);
@@ -774,7 +774,7 @@ class World {
             }
         }
 
-        if (!this.devMode) {
+        if (!this.config.dev) {
             player.stats.upgrades = player.upgrades;
             player.stats.perkID = player.perkID;
             this.postRequest('/gameStats', {
@@ -807,7 +807,7 @@ class World {
         }
         else {
             //choose point on edge if the team controls no points
-            spawnPointData.radius = this.devMode ? 100 : this.radius - 100;
+            spawnPointData.radius = this.config.dev ? 100 : this.radius - 100;
             spawnPointData.x = Math.cos(spawnPointData.angle) * spawnPointData.radius;
             spawnPointData.y = Math.sin(spawnPointData.angle) * spawnPointData.radius;
         }

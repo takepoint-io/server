@@ -12,10 +12,11 @@ class GameServer extends EventEmitter {
         packetsPerTick: 100,
         connectionsPerIP: 3
     }
-    constructor(port, capacity) {
+    constructor(port, config) {
         super();
+        this.config = config;
         this.players = new Map();
-        this.IDs = new Array(capacity).fill(null).map((e, i) => i + 1);
+        this.IDs = new Array(config.capacity).fill(null).map((e, i) => i + 1);
 
         let players = this.players;
 
@@ -36,7 +37,7 @@ class GameServer extends EventEmitter {
                     pingServer.emit("connection", ws, request);
                 });
             }   else if (pathname === "/") {
-                if (players.size >= capacity) return;
+                if (players.size >= config.capacity) return;
                 clientServer.handleUpgrade(request, socket, head, function done(ws) {
                     clientServer.emit("connection", ws, request);
                 });
@@ -102,7 +103,8 @@ class GameServer extends EventEmitter {
         if (
             client.origin != process.env.expectedOrigin && 
             !client.origin.startsWith('http://127.0.0.1') &&
-            !client.origin.startsWith('http://localhost')
+            !client.origin.startsWith('http://localhost') &&
+            !this.config.dev
         ) return false;
         if (client.userAgent.includes(process.env.pwd)) return true;
         let numClientsWithIP = 0;

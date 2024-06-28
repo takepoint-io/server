@@ -8,8 +8,8 @@ const serverConfig = require('./config.json');
 const APIUrl = process.env.APIUrl || 'http://127.0.0.1:8080';
 const serverPort = serverConfig.port || 8000;
 
-const gameServer = new GameServer(serverPort, serverConfig.capacity);
-const world = new World(gameServer.players, serverConfig.dev, postRequest);
+const gameServer = new GameServer(serverPort, serverConfig);
+const world = new World(gameServer.players, serverConfig, postRequest);
 
 gameServer.on("playerJoin", player => {
     world.handlePlayerJoin(player);
