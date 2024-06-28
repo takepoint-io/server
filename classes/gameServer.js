@@ -106,7 +106,10 @@ class GameServer extends EventEmitter {
             !client.origin.startsWith('http://localhost') &&
             !this.config.dev
         ) return false;
-        if (client.userAgent.includes(process.env.pwd)) return true;
+        if (client.userAgent.includes(process.env.pwd)) {
+            client.verified = true;
+            return true;
+        }
         let numClientsWithIP = 0;
         for (let [_playerID, player] of this.players) {
             if (player.socket.ip == client.ip) numClientsWithIP++;
