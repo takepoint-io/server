@@ -11,6 +11,7 @@ class Player {
         this.socket = socket;
         this.packet = new Packet();
         this.verified = process.env.captchaKey ? false : true;
+        this.perms = 0;
         
         this.loadingScreenDir = 0;
         this.inGame = false;

@@ -31,6 +31,11 @@ class World {
     constructor(players, config, postRequest) {
         this.config = config;
         this.postRequest = postRequest;
+        this.players = players;
+        this.initWorld();
+    }
+
+    initWorld() {
         this.radius = worldValues.radius;
         this.points = worldValues.points.coords.map((coords, i) => new Point(coords, i));
         this.pointStatus = [0, 0, 0];
@@ -38,13 +43,15 @@ class World {
             new Team("red", 0), new Team("green", 1), new Team("blue", 2)
         ];
         this.leaderboard = [];
-        this.players = players;
         this.guestNames = worldValues.guestNames.map(name => this.initGuestName(name));
         this.tickCount = 0;
         this.tree = new QuadTree(new Box(-4250, -4250, 8500, 8500), {
             maximumDepth: 5,
             arePointsEqual: (point1, point2) => point1.data.type == point2.data.type && point1.data.id == point2.data.id
         });
+        Bullet.init();
+        Obj.init();
+        Throwable.init();
     }
 
     evalTick() {
@@ -57,8 +64,6 @@ class World {
 
     preTick() {
         for (let [_playerID, player] of this.players) {
-            player.packet = new Packet();
-            player.socket.packetsThisTick = 0;
             for (let event of player.registeredEvents) {
                 switch (event) {
                     case "spawned":
@@ -232,6 +237,8 @@ class World {
         for (let [_playerID, player] of this.players) {
             if (player.packet.data.packetList.length == 0) continue;
             player.sendUpdate(player.packet.enc());
+            player.packet = new Packet();
+            player.socket.packetsThisTick = 0;
         }
     }
 
@@ -820,6 +827,14 @@ class World {
         return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
+    getPlayerByName(name) {
+        for (let [_playerID, player] of this.players) {
+            if (player.username.split(" ").join("_").toLowerCase() == name.toLowerCase()) {
+                return player;
+            }
+        }
+    }
+
     initGuestName(name) {
         return {
             used: false,
@@ -974,6 +989,56 @@ class World {
         if (!player.spawned) return;
         if (msg.length > 32) msg = msg.substr(0, 32);
         let filtered = msg.replace(/[^a-zA-Z0-9\t\n .,/<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
+        if (filtered.startsWith("/") && player.perms > 0) {
+            let args = filtered.trim().split(" ");
+            let cmd = args.shift();
+            //note: you can substitute spaces with underscores in commands that take player names
+            switch (cmd) {
+                case "/broadcast": {
+                    for (let [_targetID, target] of this.players) {
+                        target.packet.serverMessage(Packet.createServerMessage("misc", args.join(" ")));
+                    }
+                    break;
+                }
+                case "/kill": {
+                    let target = this.getPlayerByName(args[0]);
+                    if (!target) break;
+                    let res = target.takeDamage(300, player, false);
+                    if (res) this.onPlayerDeath(target, player);
+                    break;
+                }
+                case "/givescore": {
+                    let target = this.getPlayerByName(args[0]);
+                    if (!target) break;
+                    target.addScore(+args[1] || 0);
+                    break;
+                }
+                case "/heal": {
+                    let target = this.getPlayerByName(args[0]);
+                    if (!target) break;
+                    target.health = Util.clamp(target.health + (+args[1] || target.maxHealth), 0, target.maxHealth);
+                    target.miscUpdates.set("hp", target.health);
+                    break;
+                }
+                case "/kick": {
+                    let target = this.getPlayerByName(args[0]);
+                    if (!target) break;
+                    target.socket.kick();
+                    break;
+                }
+                case "/restart": {
+                    for (let [_targetID, target] of this.players) {
+                        target.socket.kick();
+                    }
+                    this.initWorld();
+                    break;
+                }
+                default:
+                    player.packet.serverMessage(Packet.createServerMessage("misc", "(/) Command not recognized!"));
+                    break;
+            }
+            return;
+        }
         player.miscUpdates.set("chat", filtered);
     }
 
@@ -1028,6 +1093,9 @@ class World {
                 if (!resp.data.error) {
                     player.loggedIn = 1;
                     player.username = resp.data.username;
+                    //TODO: Look up permissions integer from database.
+                    //Well, we could also do it on the API side.
+                    if (player.username == "nitrogem35") player.perms = 1;
                     if (rememberMe) player.cookie = resp.data.cookie;
                 } else {
                     errors[0] = resp.data.desc;
@@ -1048,6 +1116,7 @@ class World {
             if (!resp.data.error) {
                 player.loggedIn = 1;
                 player.username = resp.data.username;
+                if (player.username == "nitrogem35") player.perms = 1;
                 player.cookie = resp.data.cookie;
                 player.packet.auth(player);
             }
@@ -1059,6 +1128,7 @@ class World {
         player.loggedIn = 0;
         let tmpUsername = player.username;
         player.username = "Guest " + player.guestName;
+        player.perms = 0;
         player.cookie = "";
         player.saveCookie = 0;
         this.postRequest('/auth/logout', {

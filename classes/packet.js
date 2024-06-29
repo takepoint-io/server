@@ -9,7 +9,8 @@ class Packet {
         let packet = [
             serverPackets.alert,
             message[0],
-            message[1]
+            message[1],
+            ""
         ].join(",");
         this.data.packetList.push(packet);
     }
