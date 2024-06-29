@@ -1,5 +1,5 @@
 {
-    "updateTimer": 1000,
+    "updateTimer": 10000,
     "dev": false,
     "port": 8000,
     "override": false,
