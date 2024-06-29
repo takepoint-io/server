@@ -2,8 +2,6 @@ const { worldValues } = require('../data/values.json');
 const Util = require('./util');
 
 class Bullet {
-    static bulletIDs = new Array(worldValues.maxEntities.bullets).fill(null).map((e, i) => i + 1);
-    static bullets = new Map();
     constructor(player, angle, customData) {
         this.id = Bullet.getBulletID();
         this.type = 2;
@@ -87,6 +85,11 @@ class Bullet {
 
     static returnBulletID(id) {
         Bullet.bulletIDs.push(id);
+    }
+
+    static init() {
+        Bullet.bulletIDs = new Array(worldValues.maxEntities.bullets).fill(null).map((e, i) => i + 1);
+        Bullet.bullets = new Map();
     }
 }
 

@@ -58,6 +58,11 @@ class Obj {
     static returnObjectID(id) {
         Obj.objectIDs.push(id);
     }
+
+    static init() {
+        Obj.objectIDs = new Array(worldValues.maxEntities.objects).fill(null).map((e, i) => i + 1);
+        Obj.objects = new Map();
+    }
 }
 
 module.exports = Obj;

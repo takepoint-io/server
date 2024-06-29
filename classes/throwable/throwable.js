@@ -2,8 +2,6 @@ const Util = require('../util');
 const { worldValues } = require('../../data/values.json');
 
 class Throwable {
-    static throwableIDs = new Array(worldValues.maxEntities.throwables).fill(null).map((e, i) => i + 1);
-    static throwables = new Map();
     constructor(type, x, y, teamCode = 3, angle, travelSpeed, detonateAt, timeToLive, player) {
         this.id = Throwable.getThrowableID();
         this.type = 3;
@@ -63,6 +61,11 @@ class Throwable {
 
     static returnThrowableID(id) {
         Throwable.throwableIDs.push(id);
+    }
+
+    static init() {
+        Throwable.throwableIDs = new Array(worldValues.maxEntities.throwables).fill(null).map((e, i) => i + 1);
+        Throwable.throwables = new Map();
     }
 }
 
