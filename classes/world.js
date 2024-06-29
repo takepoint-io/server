@@ -1000,6 +1000,15 @@ class World {
                     }
                     break;
                 }
+                case "/tp": {
+                    let target = this.getPlayerByName(args[0]);
+                    if (!target) break;
+                    let distToCenter = Util.hypot(target.x, target.y);
+                    let newMagnitude = (distToCenter - target.radius * 2.1) / distToCenter;
+                    player.x = target.x * newMagnitude;
+                    player.y = target.y * newMagnitude;
+                    break;
+                }
                 case "/kill": {
                     let target = this.getPlayerByName(args[0]);
                     if (!target) break;
@@ -1093,9 +1102,7 @@ class World {
                 if (!resp.data.error) {
                     player.loggedIn = 1;
                     player.username = resp.data.username;
-                    //TODO: Look up permissions integer from database.
-                    //Well, we could also do it on the API side.
-                    if (player.username == "nitrogem35") player.perms = 1;
+                    player.perms = resp.data.perms;
                     if (rememberMe) player.cookie = resp.data.cookie;
                 } else {
                     errors[0] = resp.data.desc;
@@ -1116,7 +1123,7 @@ class World {
             if (!resp.data.error) {
                 player.loggedIn = 1;
                 player.username = resp.data.username;
-                if (player.username == "nitrogem35") player.perms = 1;
+                player.perms = resp.data.perms;
                 player.cookie = resp.data.cookie;
                 player.packet.auth(player);
             }

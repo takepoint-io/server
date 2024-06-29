@@ -62,7 +62,7 @@ function nextTick() {
         }
     }
 
-    if (Date.now() - serverStats.lastAPIUpdate > 10_000) {
+    if (Date.now() - serverStats.lastAPIUpdate > serverConfig.updateTimer) {
         axios.post(`${APIUrl}/register_instance`, {
             auth: {
                 id: serverStats.id,
