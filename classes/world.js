@@ -828,6 +828,7 @@ class World {
     }
 
     getPlayerByName(name) {
+        if (!name) return;
         for (let [_playerID, player] of this.players) {
             if (player.username.split(" ").join("_").toLowerCase() == name.toLowerCase()) {
                 return player;
