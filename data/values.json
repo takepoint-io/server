@@ -81,8 +81,8 @@
                     "damage": 25,
                     "damageDrop": 50,
                     "speed": 25,
-                    "minRange": 75,
-                    "maxRange": 350,
+                    "minRange": 3,
+                    "maxRange": 14,
                     "pieces": 24
                 }
             },
