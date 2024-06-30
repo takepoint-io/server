@@ -346,9 +346,10 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
-    slashCommands(player, commands) {
+    slashCommands(commands) {
         let packet = [
-            serverPackets.slashCommands
+            serverPackets.slashCommands,
+            commands.map(cmd => cmd.name)
         ].join(",");
         this.data.packetList.push(packet);
     }

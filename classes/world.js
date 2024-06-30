@@ -24,7 +24,7 @@ const Perks = {
     Turret: PerkList[5]
 };
 const Util = require('./util');
-const adminCommands = require('./adminCmds');
+const { commands, commandsArr } = require('./adminCmds');
 const { worldValues } = require('../data/values.json');
 
 class World {
@@ -995,8 +995,8 @@ class World {
             let args = filtered.trim().split(" ");
             let cmd = args.shift().replace("/", "");
             //note: you can substitute spaces with underscores in commands that take player names
-            if (adminCommands.has(cmd)) {
-                adminCommands.get(cmd).exec(args, player, this);
+            if (commands.has(cmd)) {
+                commands.get(cmd).exec(args, player, this);
             } else {
                 player.packet.serverMessage(Packet.createServerMessage("misc", "(/) Command not recognized!"));
             }
@@ -1057,13 +1057,15 @@ class World {
                     player.loggedIn = 1;
                     player.username = resp.data.username;
                     player.perms = resp.data.perms;
+                    if (player.perms > 0) player.packet.slashCommands(commandsArr);
                     if (rememberMe) player.cookie = resp.data.cookie;
                 } else {
                     errors[0] = resp.data.desc;
                 }
                 player.packet.auth(player, errors);
             }).catch(e => {
-                player.packet.auth(player, ["The database is currently offline."]);
+                errors[0] = "The database is currently offline.";
+                player.packet.auth(player, errors);
             });
         } else {
             player.packet.auth(player, errors);
@@ -1078,6 +1080,7 @@ class World {
                 player.loggedIn = 1;
                 player.username = resp.data.username;
                 player.perms = resp.data.perms;
+                if (player.perms > 0) player.packet.slashCommands(commandsArr);
                 player.cookie = resp.data.cookie;
                 player.packet.auth(player);
             }

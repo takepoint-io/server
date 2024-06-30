@@ -70,4 +70,4 @@ commandsArr.forEach(cmd => {
     commands.set(cmd.name, cmd);
 });
 
-module.exports = commands;
+module.exports = { commands, commandsArr };
