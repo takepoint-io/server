@@ -25,7 +25,7 @@ let commandsArr = [
         name: "kill",
         exec: (args, player, world) => {
             let target = world.getPlayerByName(args[0]);
-            if (!target) returnl
+            if (!target) return;
             let res = target.takeDamage(300, player, false);
             if (res) world.onPlayerDeath(target, player);
         }
