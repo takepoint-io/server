@@ -29,7 +29,8 @@
         "stats": "sta",
         "ping": ".",
         "authentication": "auth",
-        "captcha": "ce"
+        "captcha": "ce",
+        "slashCommands": "sl"
     },
     "clientPackets": {
         "ping": ".",

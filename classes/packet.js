@@ -346,6 +346,13 @@ class Packet {
         this.data.packetList.push(packet);
     }
 
+    slashCommands(player, commands) {
+        let packet = [
+            serverPackets.slashCommands
+        ].join(",");
+        this.data.packetList.push(packet);
+    }
+
     encode() {
         let packet = this.data;
         if (packet.type == "ping") return serverPackets.ping;

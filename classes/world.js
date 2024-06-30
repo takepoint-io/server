@@ -24,6 +24,7 @@ const Perks = {
     Turret: PerkList[5]
 };
 const Util = require('./util');
+const adminCommands = require('./adminCmds');
 const { worldValues } = require('../data/values.json');
 
 class World {
@@ -992,60 +993,12 @@ class World {
         let filtered = msg.replace(/[^a-zA-Z0-9\t\n .,/<>?;:"'`~!@#$%^&*()\[\]{}_+=\\-]/g, "") + " ";
         if (filtered.startsWith("/") && player.perms > 0) {
             let args = filtered.trim().split(" ");
-            let cmd = args.shift();
+            let cmd = args.shift().replace("/", "");
             //note: you can substitute spaces with underscores in commands that take player names
-            switch (cmd) {
-                case "/broadcast": {
-                    for (let [_targetID, target] of this.players) {
-                        target.packet.serverMessage(Packet.createServerMessage("misc", args.join(" ")));
-                    }
-                    break;
-                }
-                case "/tp": {
-                    let target = this.getPlayerByName(args[0]);
-                    if (!target) break;
-                    let distToCenter = Util.hypot(target.x, target.y);
-                    let newMagnitude = (distToCenter - target.radius * 2.1) / distToCenter;
-                    player.x = target.x * newMagnitude;
-                    player.y = target.y * newMagnitude;
-                    break;
-                }
-                case "/kill": {
-                    let target = this.getPlayerByName(args[0]);
-                    if (!target) break;
-                    let res = target.takeDamage(300, player, false);
-                    if (res) this.onPlayerDeath(target, player);
-                    break;
-                }
-                case "/givescore": {
-                    let target = this.getPlayerByName(args[0]);
-                    if (!target) break;
-                    target.addScore(+args[1] || 0);
-                    break;
-                }
-                case "/heal": {
-                    let target = this.getPlayerByName(args[0]);
-                    if (!target) break;
-                    target.health = Util.clamp(target.health + (+args[1] || target.maxHealth), 0, target.maxHealth);
-                    target.miscUpdates.set("hp", target.health);
-                    break;
-                }
-                case "/kick": {
-                    let target = this.getPlayerByName(args[0]);
-                    if (!target) break;
-                    target.socket.kick();
-                    break;
-                }
-                case "/restart": {
-                    for (let [_targetID, target] of this.players) {
-                        target.socket.kick();
-                    }
-                    this.initWorld();
-                    break;
-                }
-                default:
-                    player.packet.serverMessage(Packet.createServerMessage("misc", "(/) Command not recognized!"));
-                    break;
+            if (adminCommands.has(cmd)) {
+                adminCommands.get(cmd).exec(args, player, this);
+            } else {
+                player.packet.serverMessage(Packet.createServerMessage("misc", "(/) Command not recognized!"));
             }
             return;
         }
