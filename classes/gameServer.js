@@ -121,7 +121,7 @@ class GameServer extends EventEmitter {
     globalSweep() {
         this.players.forEach(player => {
             if (this.#limits.playerIdle - (Date.now() - player.lastInput) < 60_000 && !player.afk) {
-                player.registeredEvents.push("afk");
+                player.packet.serverMessage(Packet.createServerMessage("afk", 60 * 25));
                 player.afk = true;
             }
             if (Date.now() - player.lastInput > this.#limits.playerIdle) {

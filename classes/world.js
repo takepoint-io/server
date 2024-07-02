@@ -87,9 +87,6 @@ class World {
                         }
                         player.packet.requestCaptcha();
                         break;
-                    case "afk":
-                        player.packet.serverMessage(Packet.createServerMessage("afk", 60 * 25));
-                        break;
                 }
             }
             for (let key of player.keyDowns) {
@@ -473,7 +470,7 @@ class World {
             }
             if (!weapon.reloading && ((player.inputs.reload && weapon.ammo < weapon.maxAmmo) || (weapon.ammo == 0 && weapon.ticksSinceFire >= weapon.ticksBeforeFire))) {
                 weapon.startReload();
-                player.miscUpdates.set("reloading", player.weapon.reloading);
+                player.miscUpdates.set("reloading", weapon.reloading);
             }
             if (weapon.reloading && weapon.ticksSinceReload >= weapon.ticksBeforeReload) {
                 weapon.finishReload();
