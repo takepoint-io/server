@@ -45,7 +45,8 @@
         "upgradesAtLevel": {
             "skillPoints": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 16, 19, 22, 25],
             "gun": 10,
-            "perk": 15
+            "perk": 15,
+            "attachment": 20
         },
         "perks": {
             "barrier": {

@@ -7,6 +7,8 @@ class Weapon {
         this.name = name.toLowerCase();
         this.id = weapons[this.name];
         this.player = player;
+        this.attachment = null;
+        this.positionConstants = Weapon.positionConstants(this.id);
         this.bulletSpeed = Weapon.bulletSpeed(this.id);
         this.bulletSize = Weapon.bulletSize(this.id);
         this.damage = Weapon.bulletDamage(this.id);
@@ -23,29 +25,11 @@ class Weapon {
     }
 
     get x() {
-        switch (this.id) {
-            case weapons.pistol:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 16)) * 65);
-            case weapons.assault:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 11)) * 110);
-            case weapons.sniper:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 8)) * 135);
-            case weapons.shotgun:
-                return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + 12)) * 100);
-        }
+        return this.player.x + Math.round(Math.cos(Util.toRadians(this.player.angle + this.positionConstants[0])) * this.positionConstants[1]);
     }
 
     get y() {
-        switch (this.id) {
-            case weapons.pistol:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 16)) * 65);
-            case weapons.assault:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 11)) * 110);
-            case weapons.sniper:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 8)) * 135);
-            case weapons.shotgun:
-                return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + 12)) * 100);
-        }
+        return this.player.y + Math.round(Math.sin(Util.toRadians(this.player.angle + this.positionConstants[0])) * this.positionConstants[1]);
     }
 
     attemptFire() {
@@ -93,6 +77,52 @@ class Weapon {
 
     updateTicksBeforeReload() {
         this.ticksBeforeReload = Weapon.ticksBeforeReload(this.player);
+    }
+
+    setAttachment(id) {
+        //so, instead of modularizing each weapon, I have decided to double down
+        //on the strange decision of hardcoding weapons into the Weapon class.
+        switch (this.id) {
+            case weapons.assault:
+                if (id == 1) {
+                    this.attachment = { name: "fireRate", id: 1 };
+                    this.ticksBeforeFire = 3;
+                } else {
+                    return false;
+                }
+                break;
+            case weapons.sniper:
+                if (id == 1) {
+                    this.attachment = { name: "highImpact", id: 1 };
+                    this.damageDropDistance *= 2;
+                } else {
+                    return false;
+                }
+                break;
+            case weapons.shotgun:
+                if (id == 1) {
+                    this.attachment = { name: "longBarrel", id: 1};
+                    //TODO: change this
+                    this.positionConstants = [12, 100];
+                } else {
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
+    static positionConstants(id) {
+        switch (id) {
+            case weapons.pistol:
+                return [16, 65];
+            case weapons.assault:
+                return [11, 110];
+            case weapons.sniper:
+                return [8, 135];
+            case weapons.shotgun:
+                return [12, 100];
+        }
     }
 
     static bulletSpeed(id) {

@@ -873,6 +873,9 @@ class World {
             case "perk":
                 this.handlePerkUpgrade(player, data.perk);
                 break;
+            case "attachment":
+                this.handleAttachmentUpgrade(player, data.attachment);
+                break;
             case "chat":
                 this.handleChat(player, data.message);
                 break;
@@ -972,6 +975,7 @@ class World {
         player.formUpdates.set("weaponUpgradeAvailable", player.weaponUpgradeAvailable);
         player.formUpdates.set("ammo", player.weapon.ammo);
         player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
+        player.addScore(0);
     }
 
     handlePerkUpgrade(player, perkID) {
@@ -982,6 +986,15 @@ class World {
         player.currentCooldown = 0;
         player.formUpdates.set("perkChosen", player.perkID);
         player.formUpdates.set("perkUpgradeAvailable", player.perkUpgradeAvailable);
+    }
+
+    handleAttachmentUpgrade(player, attachmentID) {
+        if (!player.inGame || !player.weaponAttachmentAvailable) return;
+        if (!player.weapon.setAttachment(attachmentID)) return;
+        player.weaponAttachmentSelected = 1;
+        player.weaponAttachmentAvailable = 0;
+        player.miscUpdates.set("attachment", player.weapon.attachment.id);
+        player.formUpdates.set("attachmentAvailable", player.weaponAttachmentAvailable);
     }
 
     handleChat(player, msg) {

@@ -125,7 +125,8 @@ class Packet {
             fields.get("weaponUpgradeAvailable") ?? "",
             fields.get("weaponChosen") ?? "",
             fields.get("vx") ?? "",
-            fields.get("vy") ?? ""
+            fields.get("vy") ?? "",
+            fields.get("attachmentAvailable") ?? ""
         ]).join(",");
         this.data.packetList.push(packet);
     }
@@ -154,6 +155,7 @@ class Packet {
     }
 
     playerUpdate(player) {
+        let fields = player.miscUpdates;
         let packet = [
             serverPackets.playerUpdate,
             player.id,
@@ -161,7 +163,8 @@ class Packet {
             player.rY,
             player.rSpdX,
             player.rSpdY,
-            player.angle
+            player.angle,
+            fields.get("attachment") ?? ""
         ].join(",");
         this.data.packetList.push(packet);
     }
@@ -438,6 +441,11 @@ class Packet {
             case clientPackets.adBlock:
                 data.type = "adBlock";
                 data.enabled = parseInt(parts[1]);
+                break;
+            
+            case clientPackets.attachment:
+                data.type = "attachment";
+                data.attachment = parseInt(parts[1]);
                 break;
 
             case clientPackets.register:

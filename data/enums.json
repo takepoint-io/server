@@ -46,6 +46,7 @@
         "captcha": "v",
         "gun": "w",
         "adBlock": "x",
+        "attachment": "y",
         "register": "ar",
         "login": "al",
         "logout": "ao",

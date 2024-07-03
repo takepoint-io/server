@@ -137,6 +137,10 @@ class Player {
                 this.perkUpgradeAvailable = 1;
                 this.formUpdates.set("perkUpgradeAvailable", this.perkUpgradeAvailable);
             }
+            if (this.level >= upgradesAtLevel.attachment && !this.weaponAttachmentAvailable && !this.weaponAttachmentSelected && this.weaponUpgradeSelected) {
+                this.weaponAttachmentAvailable = 1;
+                this.formUpdates.set("attachmentAvailable", this.weaponAttachmentAvailable);
+            }
         }
         this.formUpdates.set("score", this.stats.score);
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
@@ -247,6 +251,8 @@ class Player {
         this.weapon = new Weapon("pistol", this);
         this.weaponUpgradeAvailable = 0;
         this.weaponUpgradeSelected = 0;
+        this.weaponAttachmentAvailable = 0;
+        this.weaponAttachmentSelected = 0;
     }
 
     setWeapon(weaponName) {
