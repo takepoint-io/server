@@ -29,6 +29,14 @@ class Throwable {
         Throwable.throwables.set(this.id, this);
     }
 
+    get rX() {
+        return Math.round(this.x);
+    }
+
+    get rY() {
+        return Math.round(this.y);
+    }
+
     tick() {
         if (this.timeToLive <= 0) this.shouldDespawn = true;
         if (this.shouldDespawn) this.despawn();

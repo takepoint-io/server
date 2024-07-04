@@ -149,7 +149,8 @@ class Packet {
             player.loggedIn,
             player.username,
             player.shield,
-            player.maxShield
+            player.maxShield,
+            player.weapon.attachment?.id
         ].join(",");
         this.data.packetList.push(packet);
     }
@@ -276,8 +277,8 @@ class Packet {
             serverPackets.throwableJoin,
             throwable.id,
             throwable.throwableType,
-            throwable.x,
-            throwable.y,
+            throwable.rX,
+            throwable.rY,
             throwable.angle,
             throwable.velocity.x,
             throwable.velocity.y,
@@ -290,12 +291,12 @@ class Packet {
         let packet = [
             serverPackets.throwableUpdate,
             throwable.id,
-            throwable.x,
-            throwable.y,
+            throwable.rX,
+            throwable.rY,
             throwable.angle,
             throwable.velocity.x,
             throwable.velocity.y,
-            throwable.detonated || "",
+            throwable.detonated || 0,
             throwable.radius,
             throwable.warningRadius ?? ""
         ].join(",");
