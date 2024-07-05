@@ -142,6 +142,7 @@ class Player {
                 this.formUpdates.set("attachmentAvailable", this.weaponAttachmentAvailable);
             }
         }
+        if (amount == 0) return;
         this.formUpdates.set("score", this.stats.score);
         this.packet.serverMessage(Packet.createServerMessage("score", amount));
     }

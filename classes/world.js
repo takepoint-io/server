@@ -975,7 +975,10 @@ class World {
         player.formUpdates.set("weaponUpgradeAvailable", player.weaponUpgradeAvailable);
         player.formUpdates.set("ammo", player.weapon.ammo);
         player.formUpdates.set("newAmmoCapacity", player.weapon.maxAmmo);
-        player.addScore(0);
+        if (player.level >= worldValues.upgradesAtLevel.attachment) {
+            player.weaponAttachmentAvailable = 1;
+            player.formUpdates.set("attachmentAvailable", player.weaponAttachmentAvailable);
+        }
     }
 
     handlePerkUpgrade(player, perkID) {

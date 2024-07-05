@@ -16,6 +16,7 @@ class Weapon {
         this.range = Weapon.range(this.id);
         this.maxAmmo = Weapon.maxAmmo(this.id, this.player);
         this.ammo = this.maxAmmo;
+        this.spread = Weapon.spread(this.id);
         this.firing = 0;
         this.reloading = 0;
         this.ticksBeforeReload = Weapon.ticksBeforeReload(this.player);
@@ -37,7 +38,7 @@ class Weapon {
             let bullets = [];
             if (this.id == weapons.shotgun) {
                 for (let i = 0; i < 6; i++) { 
-                    bullets.push(new Bullet(this.player, this.player.angle + Util.randRange(-7, 7))); 
+                    bullets.push(new Bullet(this.player, this.player.angle + Util.randRange(-this.spread, this.spread))); 
                 }
             }
             else {
@@ -102,14 +103,23 @@ class Weapon {
             case weapons.shotgun:
                 if (id == 1) {
                     this.attachment = { name: "longBarrel", id: 1};
-                    //TODO: change this
-                    this.positionConstants = [12, 100];
+                    this.positionConstants = [11, 110];
+                    this.spread = 5;
+                    this.bulletSpeed = 34;
                 } else {
                     return false;
                 }
                 break;
         }
         return true;
+    }
+
+    static spread(id) {
+        switch (id) {
+            case weapons.shotgun:
+                return 7;
+        }
+        return 0;
     }
 
     static positionConstants(id) {
@@ -121,7 +131,7 @@ class Weapon {
             case weapons.sniper:
                 return [8, 135];
             case weapons.shotgun:
-                return [12, 100];
+                return [13, 90];
         }
     }
 
@@ -186,7 +196,7 @@ class Weapon {
             case weapons.sniper:
                 return 24;
             case weapons.shotgun:
-                return 12;
+                return 10;
         }
     }
 
