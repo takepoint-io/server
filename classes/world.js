@@ -571,7 +571,7 @@ class World {
                 case 0:
                     let playerTwo = this.players.get(entity.data.id);
                     if (player.id == playerTwo.id || !playerTwo.spawned) break;
-                    if (!player.playerPool.has(playerTwo.id)) {
+                    if (!player.playerPool.has(playerTwo.id) || playerTwo.formUpdates.has("attachmentChosen")) {
                         player.playerPool.set(playerTwo.id, playerTwo);
                         player.packet.playerJoin(playerTwo);
                     }
@@ -996,7 +996,7 @@ class World {
         if (!player.weapon.setAttachment(attachmentID)) return;
         player.weaponAttachmentSelected = 1;
         player.weaponAttachmentAvailable = 0;
-        player.miscUpdates.set("attachment", player.weapon.attachment.id);
+        player.formUpdates.set("attachmentChosen", player.weapon.attachment.id);
         player.formUpdates.set("attachmentAvailable", player.weaponAttachmentAvailable);
     }
 
