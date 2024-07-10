@@ -7,7 +7,7 @@ class Weapon {
         this.name = name.toLowerCase();
         this.id = weapons[this.name];
         this.player = player;
-        this.attachment = null;
+        this.attachment = Weapon.createAttachment("", 0);
         this.positionConstants = Weapon.positionConstants(this.id);
         this.bulletSpeed = Weapon.bulletSpeed(this.id);
         this.bulletSize = Weapon.bulletSize(this.id);
@@ -70,6 +70,7 @@ class Weapon {
         this.ticksSinceReload++;
         this.ticksSinceFire++;
         this.firing = 0;
+        this.attachment.postTick();
     }
 
     updateMaxAmmo() {
@@ -86,15 +87,22 @@ class Weapon {
         switch (this.id) {
             case weapons.assault:
                 if (id == 1) {
-                    this.attachment = { name: "fireRate", id: 1 };
+                    this.attachment = Weapon.createAttachment("fireRate", 1);
                     this.ticksBeforeFire = 3;
+                } else if (id == 2) {
+                    this.attachment = Weapon.createAttachment("unlimitedAmmo", 2, () => {
+                        if (this.ammo == 0) {
+                            this.ammo = this.maxAmmo;
+                            this.player.formUpdates.set("ammo", this.ammo);
+                        }
+                    });
                 } else {
                     return false;
                 }
                 break;
             case weapons.sniper:
                 if (id == 1) {
-                    this.attachment = { name: "highImpact", id: 1 };
+                    this.attachment = Weapon.createAttachment("highImpact", 1);
                     this.damageDropDistance *= 2;
                 } else {
                     return false;
@@ -102,7 +110,7 @@ class Weapon {
                 break;
             case weapons.shotgun:
                 if (id == 1) {
-                    this.attachment = { name: "longBarrel", id: 1};
+                    this.attachment = Weapon.createAttachment("longBarrel", 1);
                     this.positionConstants = [11, 110];
                     this.spread = 5;
                     this.bulletSpeed = 34;
@@ -112,6 +120,10 @@ class Weapon {
                 break;
         }
         return true;
+    }
+
+    static createAttachment(name, id, postTickCallback=()=>{}) {
+        return { name, id, postTick: postTickCallback };
     }
 
     static spread(id) {

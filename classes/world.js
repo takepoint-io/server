@@ -147,10 +147,10 @@ class World {
             if (player.miscUpdates.size > 0) {
                 player.packet.playerMiscData(player);
             }
+            player.weapon.postTick();
             if (player.formUpdates.size > 0) {
                 player.packet.upgrades(player);
             }
-            player.weapon.postTick();
             player.registeredEvents = [];
             player.collisions = [];
             player.collidingWithObject = false;

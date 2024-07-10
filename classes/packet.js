@@ -151,7 +151,7 @@ class Packet {
             player.username,
             player.shield,
             player.maxShield,
-            player.weapon.attachment?.id
+            player.weapon.attachment.id ?? ""
         ].join(",");
         this.data.packetList.push(packet);
     }
