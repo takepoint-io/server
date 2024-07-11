@@ -8,16 +8,23 @@ class SelfDestruct extends Throwable {
     static lowestHealth = selfDestruct.lowestHealth;
     static dmg = selfDestruct.damage;
     static dmgDrop = selfDestruct.damageDrop;
-    constructor(player, world) {
+    constructor(player, world, customBehavior = {}) {
         super(2, player.x, player.y, player.teamCode, 0, 0, selfDestruct.lifespan * 25, selfDestruct.lifespan * 25 + selfDestruct.cosmeticRadii.length, player);
         this.world = world;
         this.warningRadius = 0;
         this.warningValue = 0;
-        this.player.packet.serverMessage(Packet.createServerMessage("selfDestruct", selfDestruct.lifespan));
-        this.player.destructing = true;
+        this.customBehavior = customBehavior;
+        if (!this.customBehavior.isCustomExplosion) {
+            this.player.packet.serverMessage(Packet.createServerMessage("selfDestruct", selfDestruct.lifespan));
+            this.player.destructing = true;
+        }
     }
 
     tick() {
+        if (this.customBehavior.isCustomExplosion) {
+            this.customBehavior.tick();
+            return;
+        }
         super.tick();
         this.x = this.player.x + this.player.spdX;
         this.y = this.player.y + this.player.spdY;

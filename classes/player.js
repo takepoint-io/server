@@ -166,6 +166,7 @@ class Player {
     }
 
     respawn(world) {
+        this.worldRef = world;
         this.inGame = true;
         this.spawned = true;
         this.beingHit = 0;

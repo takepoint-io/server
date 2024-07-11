@@ -1,5 +1,6 @@
-const { worldValues } = require('../data/values.json');
+const SelfDestruct = require('./throwable/selfDestruct');
 const Util = require('./util');
+const { worldValues } = require('../data/values.json');
 
 class Bullet {
     constructor(player, angle, customData) {
@@ -10,6 +11,7 @@ class Bullet {
         this.createdAt = Date.now();
         this.isCustom = customData ? 1 : 0;
         this.parentWeapon = this.isCustom ? customData.weapon : player.weapon;
+        this.isExplosive = this.parentWeapon.explosiveBullets;
         this.player = player;
         this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
@@ -69,6 +71,29 @@ class Bullet {
         Bullet.bullets.delete(this.id);
         Bullet.returnBulletID(this.id);
         this.spawned = false;
+        if (this.isExplosive) {
+            let world = this.player.worldRef;
+            let ticks = 0;
+            let sd = new SelfDestruct(this.player, world, {
+                isCustomExplosion: true, 
+                tick: () => {
+                    if (ticks == 0) {
+                        sd.x = this.x;
+                        sd.y = this.y;
+                        sd.detonated = 1;
+                        sd.radius = 20;
+                        world.createExplosion(sd.x, sd.y, 60, this.player, 15, 10, 0);
+                    } else if (ticks == 1) {
+                        sd.radius = 40;
+                    } else if (ticks == 2) {
+                        sd.radius = 60;
+                    } else {
+                        sd.despawn();
+                    }
+                    ticks++;
+                }
+            });
+        }
     }
 
     static getBulletID() {

@@ -546,7 +546,7 @@ class World {
         }
         let objectsHit = this.queryObjects(new Circle(x, y, radius + 100))
             .map(o => Obj.objects.get(o.data.id))
-            .filter(o => (o.objectType == 1 || o.objectType == 2) && Util.distance(o, {x,y}) < radius + o.radius);
+            .filter(o => o && (o.objectType == 1 || o.objectType == 2) && Util.distance(o, {x,y}) < radius + o.radius);
         for (let objectHit of objectsHit) {
             let dmg = damage - Math.floor(Util.distance(objectHit, {x,y}) / damageDrop);
             objectHit.takeDamage(dmg);

@@ -17,6 +17,7 @@ class Weapon {
         this.maxAmmo = Weapon.maxAmmo(this.id, this.player);
         this.ammo = this.maxAmmo;
         this.spread = Weapon.spread(this.id);
+        this.explosiveBullets = false;
         this.firing = 0;
         this.reloading = 0;
         this.ticksBeforeReload = Weapon.ticksBeforeReload(this.player);
@@ -104,6 +105,9 @@ class Weapon {
                 if (id == 1) {
                     this.attachment = Weapon.createAttachment("highImpact", 1);
                     this.damageDropDistance *= 2;
+                } else if (id == 2) {
+                    this.attachment = Weapon.createAttachment("explosiveRounds", 2);
+                    this.explosiveBullets = true;
                 } else {
                     return false;
                 }
