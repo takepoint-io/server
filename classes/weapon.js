@@ -108,6 +108,8 @@ class Weapon {
                 } else if (id == 2) {
                     this.attachment = Weapon.createAttachment("explosiveRounds", 2);
                     this.explosiveBullets = true;
+                    this.damage = 0;
+                    this.ticksBeforeFire = 30;
                 } else {
                     return false;
                 }

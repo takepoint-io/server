@@ -56,7 +56,7 @@ class Bullet {
     }
 
     get dmg() {
-        return this.parentWeapon.damage - Math.floor(this.distanceFromSpawn / this.parentWeapon.damageDropDistance);
+        return Math.max(this.parentWeapon.damage - Math.floor(this.distanceFromSpawn / this.parentWeapon.damageDropDistance), 0);
     }
 
     tick() {
@@ -81,12 +81,12 @@ class Bullet {
                         sd.x = this.x;
                         sd.y = this.y;
                         sd.detonated = 1;
-                        sd.radius = 20;
-                        world.createExplosion(sd.x, sd.y, 60, this.player, 15, 10, 0);
-                    } else if (ticks == 1) {
                         sd.radius = 40;
+                        world.createExplosion(sd.x, sd.y, 120, this.player, 45, 10, 0);
+                    } else if (ticks == 1) {
+                        sd.radius = 80;
                     } else if (ticks == 2) {
-                        sd.radius = 60;
+                        sd.radius = 120;
                     } else {
                         sd.despawn();
                     }
