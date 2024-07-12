@@ -65,9 +65,8 @@ class Bullet {
         this.y += this.velocity.y;
         if (this.isDrone) {
             let mouse = this.player.mouse;
-            let view = this.player.viewbox;
-            let tx = Util.clamp(-mouse.x, -view.x / 2, view.x / 2) - this.x + this.player.x;
-            let ty = Util.clamp(-mouse.y, -view.y / 2, view.y / 2) - this.y + this.player.y;
+            let tx = Util.clamp(-mouse.x, -550, 550) - this.x + this.player.x;
+            let ty = Util.clamp(-mouse.y, -500, 500) - this.y + this.player.y;
             let targetAngle = Util.angle(tx, ty);
             this.angle = Util.rotateTowards(this.angle, targetAngle, 15);
             this.velocity = this.calcVelocity();
