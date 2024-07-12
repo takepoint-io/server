@@ -596,7 +596,8 @@ class World {
 
                 case 2:
                     let bullet = Bullet.bullets.get(entity.data.id);
-                    if (!player.bulletPool.has(bullet.id)) {
+                    if (!player.bulletPool.has(bullet.id) || bullet.isDrone) {
+                        if (bullet.isDrone) player.packet.bulletExit(bullet.id);
                         player.bulletPool.set(bullet.id, bullet);
                         player.packet.bulletJoin(bullet);
                     }

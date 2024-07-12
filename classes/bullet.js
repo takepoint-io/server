@@ -12,13 +12,11 @@ class Bullet {
         this.isCustom = customData ? 1 : 0;
         this.parentWeapon = this.isCustom ? customData.weapon : player.weapon;
         this.isExplosive = this.parentWeapon.explosiveBullets;
+        this.isDrone = this.parentWeapon.droneBullets;
         this.player = player;
         this.angle = Math.round(angle);
         this.baseSpeed = this.parentWeapon.bulletSpeed;
-        this.velocity = {
-            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdX)) || 0,
-            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : player.spdY)) || 0
-        };
+        this.velocity = this.calcVelocity();
         this.size = this.parentWeapon.bulletSize;
         this.timeToLive = this.parentWeapon.range;
         this.x = this.parentWeapon.x + this.player.spdX;
@@ -65,6 +63,20 @@ class Bullet {
         if (this.shouldDespawn) this.despawn();
         this.x += this.velocity.x;
         this.y += this.velocity.y;
+        if (this.isDrone) {
+            let mouse = this.player.mouse;
+            let view = this.player.viewbox;
+            let tx = Util.clamp(-mouse.x, -view.x / 2, view.x / 2) - this.x + this.player.x;
+            let ty = Util.clamp(-mouse.y, -view.y / 2, view.y / 2) - this.y + this.player.y;
+            let targetAngle = Util.angle(tx, ty);
+            this.angle = Util.rotateTowards(this.angle, targetAngle, 15);
+            this.velocity = this.calcVelocity();
+            let slownessFactor = Math.min(Util.hypot(tx, ty) / 100, 1);
+            if (slownessFactor > 0.3) {
+                this.velocity.x *= slownessFactor;
+                this.velocity.y *= slownessFactor;
+            }
+        }
     }
 
     despawn() {
@@ -94,6 +106,13 @@ class Bullet {
                 }
             });
         }
+    }
+
+    calcVelocity() {
+        return {
+            x: Math.floor(Math.cos(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : this.player.spdX)) || 0,
+            y: Math.floor(Math.sin(Util.toRadians(this.angle)) * this.baseSpeed + (this.isCustom ? 0 : this.player.spdY)) || 0
+        };
     }
 
     static getBulletID() {

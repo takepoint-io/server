@@ -19,6 +19,12 @@ class Util {
         return (((Math.atan2(y, x) * 180) / Math.PI) + 360) % 360;
     }
 
+    static rotateTowards(angle, targetAngle, maxRotation) {
+        let diff = (targetAngle - angle + 540) % 360 - 180;
+        let amountToRotate = Math.min(Math.abs(diff), maxRotation) * Math.sign(diff);
+        return Math.round((angle + amountToRotate) % 360);
+    }
+
     static distance(p1, p2) {
         return Util.hypot(p2.x - p1.x, p2.y - p1.y);
     }

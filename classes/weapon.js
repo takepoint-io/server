@@ -18,6 +18,7 @@ class Weapon {
         this.ammo = this.maxAmmo;
         this.spread = Weapon.spread(this.id);
         this.explosiveBullets = false;
+        this.droneBullets = false;
         this.firing = 0;
         this.reloading = 0;
         this.ticksBeforeReload = Weapon.ticksBeforeReload(this.player);
@@ -37,7 +38,7 @@ class Weapon {
     attemptFire() {
         if (this.ticksSinceFire >= this.ticksBeforeFire && this.ammo > 0 && !this.reloading) {
             let bullets = [];
-            if (this.id == weapons.shotgun) {
+            if (this.id == weapons.shotgun && this.attachment.name != "droneLauncher") {
                 for (let i = 0; i < 6; i++) { 
                     bullets.push(new Bullet(this.player, this.player.angle + Util.randRange(-this.spread, this.spread))); 
                 }
@@ -120,6 +121,15 @@ class Weapon {
                     this.positionConstants = [11, 110];
                     this.spread = 5;
                     this.bulletSpeed = 34;
+                } else if (id == 2) {
+                    this.attachment = Weapon.createAttachment("droneLauncher", 2);
+                    this.spread = 2;
+                    this.range = 100;
+                    this.bulletSpeed = 20;
+                    this.ticksBeforeFire = 4;
+                    this.damage = 10;
+                    this.damageDropDistance = 100;
+                    this.droneBullets = true;
                 } else {
                     return false;
                 }
