@@ -995,6 +995,7 @@ class World {
     handleAttachmentUpgrade(player, attachmentID) {
         if (!player.inGame || !player.weaponAttachmentAvailable) return;
         if (!player.weapon.setAttachment(attachmentID)) return;
+        player.stats.attachmentID = player.weapon.attachment.id;
         player.weaponAttachmentSelected = 1;
         player.weaponAttachmentAvailable = 0;
         player.formUpdates.set("attachmentChosen", player.weapon.attachment.id);
