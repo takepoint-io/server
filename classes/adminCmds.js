@@ -14,11 +14,12 @@ let commandsArr = [
         name: "tp",
         exec: (args, player, world) => {
             let target = world.getPlayerByName(args[0]);
-            if (!target) return;
+            let playerToTP = args.length == 2 ? world.getPlayerByName(args[1]) : player;
+            if (!target || !playerToTP) return;
             let distToCenter = Util.hypot(target.x, target.y);
             let newMagnitude = (distToCenter - target.radius * 2.1) / distToCenter;
-            player.x = target.x * newMagnitude;
-            player.y = target.y * newMagnitude;
+            playerToTP.x = target.x * newMagnitude;
+            playerToTP.y = target.y * newMagnitude;
         }
     },
     {
