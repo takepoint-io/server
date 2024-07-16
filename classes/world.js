@@ -926,7 +926,7 @@ class World {
     }
 
     handleSpawn(player) {
-        if (!player.spawned && player.verified) {
+        if (!player.spawned) {
             player.registeredEvents.push("spawned");
             player.spawned = true;
         }
