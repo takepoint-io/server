@@ -10,7 +10,8 @@ class GameServer extends EventEmitter {
         pingSocketTTL: 12_000,
         playerIdle: 120_000,
         packetsPerTick: 100,
-        connectionsPerIP: 3
+        connectionsPerIP: 3,
+        captchaGrace: 6_000
     }
     constructor(port, config) {
         super();
@@ -127,7 +128,7 @@ class GameServer extends EventEmitter {
             if (Date.now() - player.lastInput > this.#limits.playerIdle) {
                 player.socket.kick();
             }
-            if (Date.now() - player.socket.createdAt > 4000 && !player.verified) {
+            if (Date.now() - player.socket.createdAt > this.#limits.captchaGrace && !player.verified) {
                 player.socket.kick();
             }
         });
