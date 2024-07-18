@@ -41,8 +41,10 @@ class Throwable {
         if (this.timeToLive <= 0) this.shouldDespawn = true;
         if (this.shouldDespawn) this.despawn();
         if (this.travelTime < this.detonateAt) {
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
+            if (Util.hypot(this.x + this.velocity.x, this.y + this.velocity.y) <= 4250) {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+            }
             this.angle = (this.angle + Math.floor((1 - this.travelTime / this.detonateAt) * Util.hypot(this.velocity.x, this.velocity.y))) % 360;
             this.travelTime++;
         }
