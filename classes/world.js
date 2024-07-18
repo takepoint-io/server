@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { QuadTree, Box, Circle } = require('js-quadtree');
 const axios = require('axios');
+const { isEmail } = require('validator');
 const Packet = require('./packet');
 const Point = require('./point');
 const Bullet = require('./bullet');
@@ -1024,7 +1025,7 @@ class World {
         if (player.spawned) return;
         let errors = [];
         let usernameIsAlpha = new RegExp(/^[a-z0-9]+$/i).test(username); 
-        let emailIsValid = validator.validate(email);
+        let emailIsValid = isEmail(email);
         if (!usernameIsAlpha) {
             errors[1] = "Username must be alphanumeric: [a-z0-9]";
         } else if (username.length < 3 ) {
