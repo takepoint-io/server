@@ -70,7 +70,7 @@ class World {
                 switch (event) {
                     case "spawned":
                         player.respawn(this);
-                        if (this.config.dev) player.addScore(20000);
+                        if (this.config.cheats) player.addScore(20000);
                         player.packet.spawn(player);
                         for (let point of this.points) {
                             player.packet.pointInfo(point);
@@ -814,7 +814,7 @@ class World {
         }
         else {
             //choose point on edge if the team controls no points
-            spawnPointData.radius = this.config.dev ? 100 : this.radius - 100;
+            spawnPointData.radius = this.config.cheats ? 100 : this.radius - 100;
             spawnPointData.x = Math.cos(spawnPointData.angle) * spawnPointData.radius;
             spawnPointData.y = Math.sin(spawnPointData.angle) * spawnPointData.radius;
         }
