@@ -85,7 +85,7 @@ class Bullet {
         if (this.isExplosive) {
             let world = this.player.worldRef;
             let ticks = 0;
-            let sd = new SelfDestruct(this.player, world, {
+            let bulletExplosion = new SelfDestruct(this.player, world, {
                 isCustomExplosion: true, 
                 tick: () => {
                     if (ticks == 0) {
