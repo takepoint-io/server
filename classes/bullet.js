@@ -89,17 +89,17 @@ class Bullet {
                 isCustomExplosion: true, 
                 tick: () => {
                     if (ticks == 0) {
-                        sd.x = this.x;
-                        sd.y = this.y;
-                        sd.detonated = 1;
-                        sd.radius = 40;
-                        world.createExplosion(sd.x, sd.y, 120, this.player, 45, 10, 0);
+                        bulletExplosion.x = this.x;
+                        bulletExplosion.y = this.y;
+                        bulletExplosion.detonated = 1;
+                        bulletExplosion.radius = 40;
+                        world.createExplosion(bulletExplosion.x, bulletExplosion.y, 120, this.player, 45, 10, 0);
                     } else if (ticks == 1) {
-                        sd.radius = 80;
+                        bulletExplosion.radius = 80;
                     } else if (ticks == 2) {
-                        sd.radius = 120;
+                        bulletExplosion.radius = 120;
                     } else {
-                        sd.despawn();
+                        bulletExplosion.despawn();
                     }
                     ticks++;
                 }

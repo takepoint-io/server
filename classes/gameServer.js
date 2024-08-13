@@ -10,7 +10,7 @@ class GameServer extends EventEmitter {
         pingSocketTTL: 12_000,
         playerIdle: 120_000,
         packetsPerTick: 100,
-        connectionsPerIP: 3,
+        connectionsPerIP: 120, //Hotfix for server limiting global pop. to this #, rewrite code later
         captchaGrace: 6_000
     }
     constructor(port, config) {
