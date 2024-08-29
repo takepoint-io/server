@@ -967,7 +967,7 @@ class World {
     }
 
     handleGunUpgrade(player, weaponID) {
-        if (!player.inGame || !player.weaponUpgradeAvailable || !(weaponID >= 0 && weaponID <= 4)) return;
+        if (!player.inGame || !player.weaponUpgradeAvailable || !(weaponID >= 0 && weaponID <= 3)) return;
         player.setWeapon(["pistol", "assault", "sniper", "shotgun"][weaponID]);
         player.weaponUpgradeSelected = 1;
         player.weaponUpgradeAvailable = 0;
